@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 
 type FileUploadCardProps = {
@@ -5,7 +6,7 @@ type FileUploadCardProps = {
   title?: string;
   subtitle?: string;
   accept?: string;
-  onSelectFile?: (file: File | null) => void;
+  onSelectFileAction?: (file: File | null) => void;
 };
 
 export default function FileUploadCard({
@@ -13,11 +14,11 @@ export default function FileUploadCard({
   title = "Upload CSV",
   subtitle = "Choose a tabular CSV to get started.",
   accept = ".csv,text/csv",
-  onSelectFile,
+  onSelectFileAction,
 }: FileUploadCardProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
-    onSelectFile?.(file);
+    onSelectFileAction?.(file);
   };
 
   return (
@@ -39,4 +40,3 @@ export default function FileUploadCard({
     </div>
   );
 }
-
