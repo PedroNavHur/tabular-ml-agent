@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 export const generateUploadUrl = mutation({
@@ -28,3 +28,22 @@ export const saveDataset = mutation({
   },
 });
 
+export const listDatasets = query({
+  args: {},
+  handler: async (ctx) => {
+    const items = await ctx.db
+      .query("datasets")
+      .withIndex("by_uploadedAt")
+      .order("desc")
+      .collect();
+    return items;
+  },
+});
+
+export const getDownloadUrl = mutation({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => {
+    const url = await ctx.storage.getUrl(storageId);
+    return url;
+  },
+});
