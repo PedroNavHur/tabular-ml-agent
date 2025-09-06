@@ -1,4 +1,4 @@
-import FileUploadCard from "@/components/FileUploadCard";
+import UploadClient from "./UploadClient";
 import StudioNavbar from "@/components/StudioNavbar";
 import StudioSidebar from "@/components/StudioSidebar";
 
@@ -13,7 +13,7 @@ export default function StudioPage() {
 
         {/* Centered content */}
         <main className="flex-1 flex items-center justify-center p-6">
-          <FileUploadCard />
+          <UploadClient />
         </main>
       </div>
 

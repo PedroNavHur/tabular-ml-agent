@@ -16,3 +16,4 @@ Key Non-negotiables:
 	•	Hard timeouts: per-trial (60–90s) and global (e.g., 10–15 min)
 	•	Clean API contracts: /profile, /suggest, /train, /health
 	•	CORS allowlist for Vercel + Convex origins
+	• Strict TypeScript types don't use "any"

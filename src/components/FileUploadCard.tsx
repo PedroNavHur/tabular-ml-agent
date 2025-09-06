@@ -22,7 +22,11 @@ export default function FileUploadCard({
   };
 
   return (
-    <div className={["card bg-base-200 w-full max-w-xl", className].filter(Boolean).join(" ")}> 
+    <div
+      className={["card bg-base-200 w-full max-w-xl", className]
+        .filter((c): c is string => Boolean(c))
+        .join(" ")}
+    >
       <div className="card-body items-stretch gap-4">
         <h2 className="card-title">{title}</h2>
         {subtitle ? <p className="text-sm opacity-70">{subtitle}</p> : null}
