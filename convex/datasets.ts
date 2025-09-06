@@ -47,3 +47,11 @@ export const getDownloadUrl = mutation({
     return url;
   },
 });
+
+export const getDataset = query({
+  args: { id: v.id("datasets") },
+  handler: async (ctx, { id }) => {
+    const doc = await ctx.db.get(id);
+    return doc;
+  },
+});

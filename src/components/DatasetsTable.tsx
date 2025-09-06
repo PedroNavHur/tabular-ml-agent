@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -63,17 +64,25 @@ export default function DatasetsTable() {
                   <td className="opacity-80">{d.contentType}</td>
                   <td className="opacity-80">{formatDate(d.uploadedAt)}</td>
                   <td className="text-right">
-                    <button
-                      className="btn btn-sm btn-outline"
-                      onClick={async () => {
-                        const url = await getDownloadUrl({
-                          storageId: d.storageId,
-                        });
-                        if (url) window.open(url, "_blank");
-                      }}
-                    >
-                      Download
-                    </button>
+                    <div className="flex gap-2 justify-end">
+                      <Link
+                        href={`/studio/preprocess/${String(d._id)}`}
+                        className="btn btn-sm btn-primary"
+                      >
+                        Preprocess
+                      </Link>
+                      <button
+                        className="btn btn-sm btn-outline"
+                        onClick={async () => {
+                          const url = await getDownloadUrl({
+                            storageId: d.storageId,
+                          });
+                          if (url) window.open(url, "_blank");
+                        }}
+                      >
+                        Download
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
