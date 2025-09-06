@@ -10,4 +10,3 @@ export default defineSchema({
     uploadedAt: v.number(),
   }).index("by_uploadedAt", ["uploadedAt"]),
 });
-

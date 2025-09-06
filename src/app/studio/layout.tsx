@@ -12,11 +12,12 @@ export default function StudioLayout({
 
       <div className="drawer-content flex flex-col">
         <StudioNavbar drawerId="studio-drawer" title="Studio" />
-        <main className="flex-1 flex items-start justify-center p-6">{children}</main>
+        <main className="flex-1 flex items-start justify-center p-6">
+          {children}
+        </main>
       </div>
 
       <StudioSidebar drawerId="studio-drawer" />
     </div>
   );
 }
-

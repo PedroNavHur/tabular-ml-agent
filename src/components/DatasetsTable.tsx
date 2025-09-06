@@ -66,7 +66,9 @@ export default function DatasetsTable() {
                     <button
                       className="btn btn-sm btn-outline"
                       onClick={async () => {
-                        const url = await getDownloadUrl({ storageId: d.storageId });
+                        const url = await getDownloadUrl({
+                          storageId: d.storageId,
+                        });
                         if (url) window.open(url, "_blank");
                       }}
                     >
@@ -82,4 +84,3 @@ export default function DatasetsTable() {
     </div>
   );
 }
-

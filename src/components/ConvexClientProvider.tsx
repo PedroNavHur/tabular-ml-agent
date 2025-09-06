@@ -12,4 +12,3 @@ export default function ConvexClientProvider({
 }) {
   return <ConvexProvider client={convex}>{children}</ConvexProvider>;
 }
-

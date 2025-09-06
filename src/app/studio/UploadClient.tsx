@@ -15,7 +15,7 @@ export default function UploadClient() {
   return (
     <div className="w-full flex flex-col items-center">
       <FileUploadCard
-        onSelectFileAction={async (file) => {
+        onSelectFileAction={async file => {
           if (!file) return;
           setFileName(file.name);
           setStatus("Uploading...");
@@ -27,7 +27,9 @@ export default function UploadClient() {
               body: file,
             });
             if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-            const { storageId } = (await res.json()) as { storageId: Id<"_storage"> };
+            const { storageId } = (await res.json()) as {
+              storageId: Id<"_storage">;
+            };
 
             await saveDataset({
               storageId,
@@ -37,7 +39,8 @@ export default function UploadClient() {
             });
             setStatus("Uploaded ✔");
           } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Upload failed";
+            const message =
+              err instanceof Error ? err.message : "Upload failed";
             setStatus(message);
           }
         }}

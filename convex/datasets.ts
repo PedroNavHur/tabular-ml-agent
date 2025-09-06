@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export const generateUploadUrl = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const url = await ctx.storage.generateUploadUrl();
     return url;
   },
@@ -30,7 +30,7 @@ export const saveDataset = mutation({
 
 export const listDatasets = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async ctx => {
     const items = await ctx.db
       .query("datasets")
       .withIndex("by_uploadedAt")
