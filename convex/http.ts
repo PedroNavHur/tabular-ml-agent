@@ -81,5 +81,21 @@ http.route({ path: "/preprocess/complete", method: "POST", handler: httpPreproce
 http.route({ path: "/preprocess/fail", method: "POST", handler: httpPreprocessFail });
 http.route({ path: "/profile/save", method: "POST", handler: httpSaveProfile });
 http.route({ path: "/storage/upload-url", method: "POST", handler: httpGenerateUploadUrl });
+// Helper to fetch original dataset download URL
+http.route({
+  path: "/dataset/download-url",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const secret = request.headers.get("x-webhook-secret");
+    if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    const { datasetId } = (await request.json()) as { datasetId: string };
+    const doc = await ctx.runQuery(api.datasets.getDataset, { id: datasetId as any });
+    if (!doc) return new Response("not found", { status: 404 });
+    const url = await ctx.storage.getUrl(doc.storageId as any);
+    return new Response(JSON.stringify({ url }), { status: 200 });
+  }),
+});
 
 export default http;

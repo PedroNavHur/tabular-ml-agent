@@ -46,3 +46,4 @@ backend/.pytest_cache/
 backend/runs/
 backend/.ruff_cache/
 *.pyc
+.venv/

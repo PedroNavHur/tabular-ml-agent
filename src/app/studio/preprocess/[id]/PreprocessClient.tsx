@@ -244,12 +244,18 @@ export default function PreprocessClient({ id }: { id: string }) {
                   disabled={!headers.length || !target}
                   onClick={async () => {
                     if (!info) return;
-                    await startPreprocess({
-                      datasetId: info._id as Id<"datasets">,
-                      params: { target, idColumn, taskType, missing, testSize },
-                    });
-                    setToast("Preprocess started");
-                    setTimeout(() => setToast(null), 2500);
+                    try {
+                      await startPreprocess({
+                        datasetId: info._id as Id<"datasets">,
+                        params: { target, idColumn, taskType, missing, testSize },
+                      });
+                      setToast("Preprocess started");
+                    } catch (e: unknown) {
+                      const msg = e instanceof Error ? e.message : "Failed to start preprocess";
+                      setToast(msg);
+                    } finally {
+                      setTimeout(() => setToast(null), 3000);
+                    }
                   }}
                 >
                   Preprocess

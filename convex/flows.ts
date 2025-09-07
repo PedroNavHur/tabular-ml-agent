@@ -31,10 +31,21 @@ export const startPreprocess: unknown = action({
 
     const modalUrl = process.env.MODAL_PREPROCESS_URL;
     const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
-    const convexUrl = process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+    // Prefer the Convex HTTP Actions base URL when constructing callback URLs
+    const convexUrl =
+      process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
 
-    if (modalUrl && webhookSecret && convexUrl) {
-      await fetch(modalUrl, {
+    if (!modalUrl) throw new Error("Missing MODAL_PREPROCESS_URL in Convex env");
+    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!convexUrl)
+      throw new Error(
+        "Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env",
+      );
+
+    const endpoint = modalUrl.endsWith("/preprocess") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/preprocess`;
+
+    if (endpoint && webhookSecret && convexUrl) {
+      await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
