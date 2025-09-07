@@ -75,16 +75,18 @@ export const startPreprocess: unknown = action({
   },
 });
 
-
 export const summarizeProfile: unknown = action({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
-    const latest = await ctx.runQuery(api.datasets.getLatestProfile, { datasetId });
+    const latest = await ctx.runQuery(api.datasets.getLatestProfile, {
+      datasetId,
+    });
     if (!latest) throw new Error("No profile found for dataset");
 
     const prompt = profileSummaryPrompt(latest.report);
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY in Convex env");
+    if (!OPENAI_API_KEY)
+      throw new Error("Missing OPENAI_API_KEY in Convex env");
 
     const resp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -95,9 +97,12 @@ export const summarizeProfile: unknown = action({
       body: JSON.stringify({
         model: "gpt-5-mini",
         messages: [
-          { role: "system", content: "You are a helpful data science assistant." },
+          {
+            role: "system",
+            content: "You are a helpful data science assistant.",
+          },
           { role: "user", content: prompt },
-        ]
+        ],
       }),
     });
     if (!resp.ok) {

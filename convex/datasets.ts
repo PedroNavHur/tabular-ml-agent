@@ -174,7 +174,6 @@ export const getLatestProfile = query({
 
 // (Actions & HTTP callbacks are implemented in convex/flows.ts and convex/webhooks.ts)
 
-
 export const saveProfileSummary = mutation({
   args: {
     datasetId: v.id("datasets"),
@@ -192,13 +191,12 @@ export const saveProfileSummary = mutation({
   },
 });
 
-
 export const getLatestProfileSummary = query({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
     const [latest] = await ctx.db
       .query("profile_summaries")
-      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .withIndex("by_dataset_createdAt", q => q.eq("datasetId", datasetId))
       .order("desc")
       .take(1);
     return latest ?? null;

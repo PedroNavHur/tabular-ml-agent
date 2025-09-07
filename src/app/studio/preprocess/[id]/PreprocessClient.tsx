@@ -1,10 +1,10 @@
 "use client";
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id, Doc } from "convex/_generated/dataModel";
+import { useAction, useMutation, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 type TaskType = "auto" | "classification" | "regression";
 
@@ -98,10 +98,9 @@ export default function PreprocessClient({ id }: { id: string }) {
     info ? { datasetId: info._id as Id<"datasets"> } : "skip"
   );
   const latestProfileSummary = useQuery(
-    (api as unknown as { datasets: { getLatestProfileSummary: any } }).datasets
-      .getLatestProfileSummary,
-    info ? { datasetId: info._id as Id<"datasets"> } : "skip",
-  ) as { summary: string } | null | undefined;
+    api.datasets.getLatestProfileSummary,
+    info ? { datasetId: info._id as Id<"datasets"> } : "skip"
+  ) as Doc<"profile_summaries"> | null | undefined;
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
   const [toast, setToast] = useState<string | null>(null);
@@ -310,10 +309,15 @@ export default function PreprocessClient({ id }: { id: string }) {
                   onClick={async () => {
                     if (!info) return;
                     try {
-                      await summarizeProfile({ datasetId: info._id as Id<"datasets"> });
+                      await summarizeProfile({
+                        datasetId: info._id as Id<"datasets">,
+                      });
                       setToast("Profile summarized");
                     } catch (e: unknown) {
-                      const msg = e instanceof Error ? e.message : "Failed to summarize profile";
+                      const msg =
+                        e instanceof Error
+                          ? e.message
+                          : "Failed to summarize profile";
                       setToast(msg);
                     } finally {
                       setTimeout(() => setToast(null), 3000);
@@ -402,8 +406,6 @@ export default function PreprocessClient({ id }: { id: string }) {
             </div>
           </div>
 
-
-
           {/* Summary */}
           <div className="card bg-base-200">
             <div className="card-body">
@@ -411,27 +413,37 @@ export default function PreprocessClient({ id }: { id: string }) {
               {latestProfileSummary === undefined ? (
                 <div className="opacity-70">Loading...</div>
               ) : !latestProfileSummary ? (
-                <div className="opacity-70">No summary yet. Use "Run Profiling" to generate.</div>
-              ) : (() => {
-                let items: Array<{ title: string; detail: string }> | null = null;
-                try {
-                  const parsed = JSON.parse(latestProfileSummary.summary);
-                  if (Array.isArray(parsed)) items = parsed as Array<{ title: string; detail: string }>;
-                } catch {}
-                return items ? (
-                  <ul className="list-disc pl-5 space-y-1">
-                    {items.map((it, idx) => (
-                      <li key={idx}>
-                        <span className="font-semibold">{it.title}:</span> {it.detail}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="prose prose-sm max-w-none whitespace-pre-wrap opacity-90">
-                    {latestProfileSummary.summary}
-                  </div>
-                );
-              })()}
+                <div className="opacity-70">
+                  No summary yet. Use <br>Run Profiling</br> to generate.
+                </div>
+              ) : (
+                (() => {
+                  let items: Array<{ title: string; detail: string }> | null =
+                    null;
+                  try {
+                    const parsed = JSON.parse(latestProfileSummary.summary);
+                    if (Array.isArray(parsed))
+                      items = parsed as Array<{
+                        title: string;
+                        detail: string;
+                      }>;
+                  } catch {}
+                  return items ? (
+                    <ul className="list-disc pl-5 space-y-1">
+                      {items.map((it, idx) => (
+                        <li key={idx}>
+                          <span className="font-semibold">{it.title}:</span>{" "}
+                          {it.detail}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="prose prose-sm max-w-none whitespace-pre-wrap opacity-90">
+                      {latestProfileSummary.summary}
+                    </div>
+                  );
+                })()
+              )}
             </div>
           </div>
           {/* Preview Table */}

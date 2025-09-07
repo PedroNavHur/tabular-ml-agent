@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 
 const httpPreprocessRunning = httpAction(async (ctx, request) => {
   const secret = request.headers.get("x-webhook-secret");
@@ -9,7 +10,7 @@ const httpPreprocessRunning = httpAction(async (ctx, request) => {
   }
   const { runId } = (await request.json()) as { runId: string };
   await ctx.runMutation(api.datasets.markPreprocessRunning, {
-    runId: runId as any,
+    runId: runId as Id<"preprocess_runs">,
   });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
 });
@@ -27,8 +28,8 @@ const httpPreprocessComplete = httpAction(async (ctx, request) => {
       summary: unknown;
     };
   await ctx.runMutation(api.datasets.completePreprocessRun, {
-    runId: runId as any,
-    processedStorageId: processedStorageId as any,
+    runId: runId as Id<"preprocess_runs">,
+    processedStorageId: processedStorageId as Id<"_storage">,
     processedFilename,
     summary,
   });
@@ -45,7 +46,7 @@ const httpPreprocessFail = httpAction(async (ctx, request) => {
     error: string;
   };
   await ctx.runMutation(api.datasets.failPreprocessRun, {
-    runId: runId as any,
+    runId: runId as Id<"preprocess_runs">,
     error,
   });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
@@ -62,9 +63,9 @@ const httpSaveProfile = httpAction(async (ctx, request) => {
     runId?: string;
   };
   await ctx.runMutation(api.datasets.saveProfile, {
-    datasetId: datasetId as any,
+    datasetId: datasetId as Id<"datasets">,
     report,
-    runId: (runId as any) ?? undefined,
+    runId: (runId as Id<"preprocess_runs">) ?? undefined,
   });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
 });
@@ -112,10 +113,10 @@ http.route({
     }
     const { datasetId } = (await request.json()) as { datasetId: string };
     const doc = await ctx.runQuery(api.datasets.getDataset, {
-      id: datasetId as any,
+      id: datasetId as Id<"datasets">,
     });
     if (!doc) return new Response("not found", { status: 404 });
-    const url = await ctx.storage.getUrl(doc.storageId as any);
+    const url = await ctx.storage.getUrl(doc.storageId);
     return new Response(JSON.stringify({ url }), { status: 200 });
   }),
 });
