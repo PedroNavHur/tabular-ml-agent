@@ -55,3 +55,118 @@ export const getDataset = query({
     return doc;
   },
 });
+
+// Preprocess runs
+export const createPreprocessRun = mutation({
+  args: {
+    datasetId: v.id("datasets"),
+    params: v.object({
+      target: v.union(v.string(), v.null()),
+      idColumn: v.union(v.string(), v.null()),
+      taskType: v.union(
+        v.literal("auto"),
+        v.literal("classification"),
+        v.literal("regression"),
+      ),
+      missing: v.union(
+        v.literal("auto"),
+        v.literal("drop"),
+        v.literal("mean"),
+        v.literal("median"),
+        v.literal("most_frequent"),
+      ),
+      testSize: v.number(),
+    }),
+  },
+  handler: async (ctx, { datasetId, params }) => {
+    const now = Date.now();
+    const id = await ctx.db.insert("preprocess_runs", {
+      datasetId,
+      status: "pending",
+      params,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+});
+
+export const markPreprocessRunning = mutation({
+  args: { runId: v.id("preprocess_runs") },
+  handler: async (ctx, { runId }) => {
+    await ctx.db.patch(runId, { status: "running", updatedAt: Date.now() });
+  },
+});
+
+export const completePreprocessRun = mutation({
+  args: {
+    runId: v.id("preprocess_runs"),
+    processedStorageId: v.id("_storage"),
+    processedFilename: v.string(),
+    summary: v.any(),
+  },
+  handler: async (ctx, { runId, processedStorageId, processedFilename, summary }) => {
+    await ctx.db.patch(runId, {
+      status: "completed",
+      processedStorageId,
+      processedFilename,
+      summary,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const failPreprocessRun = mutation({
+  args: { runId: v.id("preprocess_runs"), error: v.string() },
+  handler: async (ctx, { runId, error }) => {
+    await ctx.db.patch(runId, {
+      status: "failed",
+      summary: { error },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const listPreprocessRuns = query({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const items = await ctx.db
+      .query("preprocess_runs")
+      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .order("desc")
+      .collect();
+    return items;
+  },
+});
+
+// Profiles
+export const saveProfile = mutation({
+  args: {
+    datasetId: v.id("datasets"),
+    report: v.any(),
+    runId: v.optional(v.id("preprocess_runs")),
+  },
+  handler: async (ctx, { datasetId, report, runId }) => {
+    const id = await ctx.db.insert("profiles", {
+      datasetId,
+      report,
+      runId,
+      createdAt: Date.now(),
+    });
+    return id;
+  },
+});
+
+export const getLatestProfile = query({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const [latest] = await ctx.db
+      .query("profiles")
+      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .order("desc")
+      .take(1);
+    return latest ?? null;
+  },
+});
+
+// (Actions & HTTP callbacks are implemented in convex/flows.ts and convex/webhooks.ts)

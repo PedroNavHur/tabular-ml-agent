@@ -2,8 +2,8 @@
 import { useState } from "react";
 import FileUploadCard from "@/components/FileUploadCard";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
 
 export default function UploadClient() {
   const [status, setStatus] = useState<string | null>(null);

@@ -1,8 +1,10 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import Link from "next/link";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
+import type { FunctionReference } from "convex/server";
 
 type TaskType = "auto" | "classification" | "regression";
 
@@ -46,6 +48,19 @@ export default function PreprocessClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
   const dataset = useQuery(api.datasets.getDataset, { id: datasetId });
   const getDownloadUrl = useMutation(api.datasets.getDownloadUrl);
+  // Use Convex action for preprocessing
+  type StartArgs = { datasetId: Id<"datasets">; params: {
+    target: string | null;
+    idColumn: string | null;
+    taskType: TaskType;
+    missing: "auto" | "drop" | "mean" | "median" | "most_frequent";
+    testSize: number;
+  }};
+  type StartReturn = { runId: Id<"preprocess_runs"> };
+  const startPreprocessRef = (api as unknown as {
+    flows: { startPreprocess: FunctionReference<"action"> };
+  }).flows.startPreprocess;
+  const startPreprocess = useAction(startPreprocessRef);
 
   const info = useMemo(() => dataset, [dataset]);
   const [loading, setLoading] = useState(false);
@@ -56,6 +71,15 @@ export default function PreprocessClient({ id }: { id: string }) {
   const [taskType, setTaskType] = useState<TaskType>("auto");
   const [testSize, setTestSize] = useState<number>(0.2);
   const [missing, setMissing] = useState<"auto" | "drop" | "mean" | "median" | "most_frequent">("auto");
+
+  // Status panels
+  const runs = useQuery(api.datasets.listPreprocessRuns, info ? { datasetId: info._id as Id<"datasets"> } : "skip");
+  const latestProfile = useQuery(
+    api.datasets.getLatestProfile,
+    info ? { datasetId: info._id as Id<"datasets"> } : "skip",
+  );
+  const hasCompleted = Array.isArray(runs) && runs.some(r => r.status === "completed");
+  const [toast, setToast] = useState<string | null>(null);
 
   const loadPreview = async () => {
     if (!info) return;
@@ -220,31 +244,86 @@ export default function PreprocessClient({ id }: { id: string }) {
                   disabled={!headers.length || !target}
                   onClick={async () => {
                     if (!info) return;
-                    const body = {
-                      datasetId: String(info._id),
-                      params: {
-                        target,
-                        idColumn,
-                        taskType,
-                        missing,
-                        testSize,
-                      },
-                    };
-                    await fetch("/api/preprocess", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(body),
+                    await startPreprocess({
+                      datasetId: info._id as Id<"datasets">,
+                      params: { target, idColumn, taskType, missing, testSize },
                     });
+                    setToast("Preprocess started");
+                    setTimeout(() => setToast(null), 2500);
                   }}
                 >
                   Preprocess
                 </button>
-                <button className="btn btn-primary" disabled={!headers.length || !target}>
+                <button
+                  className="btn btn-primary"
+                  disabled={!headers.length || !target || !hasCompleted}
+                  title={!hasCompleted ? "Run preprocessing first" : undefined}
+                >
                   Run Profiling
                 </button>
                 <button className="btn btn-outline" disabled={!headers.length || !target}>
                   Next: Suggest Models
                 </button>
+              </div>
+            </div>
+          </div>
+
+          {toast ? (
+            <div className="toast toast-end">
+              <div className="alert alert-success">
+                <span>{toast}</span>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Status Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card bg-base-200">
+              <div className="card-body">
+                <h3 className="card-title">Latest Preprocess Run</h3>
+                {runs === undefined ? (
+                  <div className="opacity-70">Loading...</div>
+                ) : !runs || runs.length === 0 ? (
+                  <div className="opacity-70">No runs yet.</div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Status: {runs[0].status}</div>
+                        <div className="text-xs opacity-70">Updated: {new Date(runs[0].updatedAt).toLocaleString()}</div>
+                      </div>
+                      {runs[0].processedFilename ? (
+                        <div className="badge badge-outline">{runs[0].processedFilename}</div>
+                      ) : null}
+                    </div>
+                    {runs[0].summary ? (
+                      <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
+                        {JSON.stringify(runs[0].summary, null, 2)}
+                      </pre>
+                    ) : null}
+                    <div className="card-actions justify-end">
+                      {info ? (
+                        <Link href={`/studio/preprocess/${String(info._id)}/runs`} className="btn btn-sm btn-outline">
+                          View all runs
+                        </Link>
+                      ) : null}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="card bg-base-200">
+              <div className="card-body">
+                <h3 className="card-title">Latest Profile</h3>
+                {latestProfile === undefined ? (
+                  <div className="opacity-70">Loading...</div>
+                ) : !latestProfile ? (
+                  <div className="opacity-70">No profile saved yet.</div>
+                ) : (
+                  <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
+                    {JSON.stringify(latestProfile.report, null, 2)}
+                  </pre>
+                )}
               </div>
             </div>
           </div>
