@@ -69,6 +69,12 @@ export default function PreprocessClient({ id }: { id: string }) {
     }
   ).flows.startPreprocess;
   const startPreprocess = useAction(startPreprocessRef);
+  const summarizeProfileRef = (
+    api as unknown as {
+      flows: { summarizeProfile: FunctionReference<"action"> };
+    }
+  ).flows.summarizeProfile;
+  const summarizeProfile = useAction(summarizeProfileRef);
 
   const info = useMemo(() => dataset, [dataset]);
   const [loading, setLoading] = useState(false);
@@ -91,6 +97,11 @@ export default function PreprocessClient({ id }: { id: string }) {
     api.datasets.getLatestProfile,
     info ? { datasetId: info._id as Id<"datasets"> } : "skip"
   );
+  const latestProfileSummary = useQuery(
+    (api as unknown as { datasets: { getLatestProfileSummary: any } }).datasets
+      .getLatestProfileSummary,
+    info ? { datasetId: info._id as Id<"datasets"> } : "skip",
+  ) as { summary: string } | null | undefined;
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
   const [toast, setToast] = useState<string | null>(null);
@@ -296,6 +307,18 @@ export default function PreprocessClient({ id }: { id: string }) {
                   className="btn btn-primary"
                   disabled={!headers.length || !target || !hasCompleted}
                   title={!hasCompleted ? "Run preprocessing first" : undefined}
+                  onClick={async () => {
+                    if (!info) return;
+                    try {
+                      await summarizeProfile({ datasetId: info._id as Id<"datasets"> });
+                      setToast("Profile summarized");
+                    } catch (e: unknown) {
+                      const msg = e instanceof Error ? e.message : "Failed to summarize profile";
+                      setToast(msg);
+                    } finally {
+                      setTimeout(() => setToast(null), 3000);
+                    }
+                  }}
                 >
                   Run Profiling
                 </button>
@@ -379,6 +402,38 @@ export default function PreprocessClient({ id }: { id: string }) {
             </div>
           </div>
 
+
+
+          {/* Summary */}
+          <div className="card bg-base-200">
+            <div className="card-body">
+              <h3 className="card-title">Profile Summary</h3>
+              {latestProfileSummary === undefined ? (
+                <div className="opacity-70">Loading...</div>
+              ) : !latestProfileSummary ? (
+                <div className="opacity-70">No summary yet. Use "Run Profiling" to generate.</div>
+              ) : (() => {
+                let items: Array<{ title: string; detail: string }> | null = null;
+                try {
+                  const parsed = JSON.parse(latestProfileSummary.summary);
+                  if (Array.isArray(parsed)) items = parsed as Array<{ title: string; detail: string }>;
+                } catch {}
+                return items ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {items.map((it, idx) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{it.title}:</span> {it.detail}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="prose prose-sm max-w-none whitespace-pre-wrap opacity-90">
+                    {latestProfileSummary.summary}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
           {/* Preview Table */}
           <div className="card bg-base-200">
             <div className="card-body">

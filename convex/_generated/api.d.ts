@@ -16,6 +16,7 @@ import type {
 import type * as datasets from "../datasets.js";
 import type * as flows from "../flows.js";
 import type * as http from "../http.js";
+import type * as prompts from "../prompts.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   datasets: typeof datasets;
   flows: typeof flows;
   http: typeof http;
+  prompts: typeof prompts;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

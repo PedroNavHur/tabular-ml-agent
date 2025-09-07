@@ -46,4 +46,10 @@ export default defineSchema({
     runId: v.optional(v.id("preprocess_runs")),
     createdAt: v.number(),
   }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
+  profile_summaries: defineTable({
+    datasetId: v.id("datasets"),
+    profileId: v.id("profiles"),
+    summary: v.string(),
+    createdAt: v.number(),
+  }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
 });

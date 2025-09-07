@@ -173,3 +173,34 @@ export const getLatestProfile = query({
 });
 
 // (Actions & HTTP callbacks are implemented in convex/flows.ts and convex/webhooks.ts)
+
+
+export const saveProfileSummary = mutation({
+  args: {
+    datasetId: v.id("datasets"),
+    profileId: v.id("profiles"),
+    summary: v.string(),
+  },
+  handler: async (ctx, { datasetId, profileId, summary }) => {
+    const id = await ctx.db.insert("profile_summaries", {
+      datasetId,
+      profileId,
+      summary,
+      createdAt: Date.now(),
+    });
+    return id;
+  },
+});
+
+
+export const getLatestProfileSummary = query({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const [latest] = await ctx.db
+      .query("profile_summaries")
+      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .order("desc")
+      .take(1);
+    return latest ?? null;
+  },
+});
