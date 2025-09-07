@@ -66,14 +66,14 @@ export const createPreprocessRun = mutation({
       taskType: v.union(
         v.literal("auto"),
         v.literal("classification"),
-        v.literal("regression"),
+        v.literal("regression")
       ),
       missing: v.union(
         v.literal("auto"),
         v.literal("drop"),
         v.literal("mean"),
         v.literal("median"),
-        v.literal("most_frequent"),
+        v.literal("most_frequent")
       ),
       testSize: v.number(),
     }),
@@ -105,7 +105,10 @@ export const completePreprocessRun = mutation({
     processedFilename: v.string(),
     summary: v.any(),
   },
-  handler: async (ctx, { runId, processedStorageId, processedFilename, summary }) => {
+  handler: async (
+    ctx,
+    { runId, processedStorageId, processedFilename, summary }
+  ) => {
     await ctx.db.patch(runId, {
       status: "completed",
       processedStorageId,
@@ -132,7 +135,7 @@ export const listPreprocessRuns = query({
   handler: async (ctx, { datasetId }) => {
     const items = await ctx.db
       .query("preprocess_runs")
-      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .withIndex("by_dataset_createdAt", q => q.eq("datasetId", datasetId))
       .order("desc")
       .collect();
     return items;
@@ -162,7 +165,7 @@ export const getLatestProfile = query({
   handler: async (ctx, { datasetId }) => {
     const [latest] = await ctx.db
       .query("profiles")
-      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .withIndex("by_dataset_createdAt", q => q.eq("datasetId", datasetId))
       .order("desc")
       .take(1);
     return latest ?? null;

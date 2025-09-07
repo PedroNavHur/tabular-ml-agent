@@ -8,7 +8,9 @@ const httpPreprocessRunning = httpAction(async (ctx, request) => {
     return new Response("unauthorized", { status: 401 });
   }
   const { runId } = (await request.json()) as { runId: string };
-  await ctx.runMutation(api.datasets.markPreprocessRunning, { runId: runId as any });
+  await ctx.runMutation(api.datasets.markPreprocessRunning, {
+    runId: runId as any,
+  });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
 });
 
@@ -17,17 +19,13 @@ const httpPreprocessComplete = httpAction(async (ctx, request) => {
   if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
     return new Response("unauthorized", { status: 401 });
   }
-  const {
-    runId,
-    processedStorageId,
-    processedFilename,
-    summary,
-  } = (await request.json()) as {
-    runId: string;
-    processedStorageId: string;
-    processedFilename: string;
-    summary: unknown;
-  };
+  const { runId, processedStorageId, processedFilename, summary } =
+    (await request.json()) as {
+      runId: string;
+      processedStorageId: string;
+      processedFilename: string;
+      summary: unknown;
+    };
   await ctx.runMutation(api.datasets.completePreprocessRun, {
     runId: runId as any,
     processedStorageId: processedStorageId as any,
@@ -42,8 +40,14 @@ const httpPreprocessFail = httpAction(async (ctx, request) => {
   if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
     return new Response("unauthorized", { status: 401 });
   }
-  const { runId, error } = (await request.json()) as { runId: string; error: string };
-  await ctx.runMutation(api.datasets.failPreprocessRun, { runId: runId as any, error });
+  const { runId, error } = (await request.json()) as {
+    runId: string;
+    error: string;
+  };
+  await ctx.runMutation(api.datasets.failPreprocessRun, {
+    runId: runId as any,
+    error,
+  });
   return new Response(JSON.stringify({ ok: true }), { status: 200 });
 });
 
@@ -76,11 +80,27 @@ const httpGenerateUploadUrl = httpAction(async (ctx, request) => {
 
 const http = httpRouter();
 
-http.route({ path: "/preprocess/running", method: "POST", handler: httpPreprocessRunning });
-http.route({ path: "/preprocess/complete", method: "POST", handler: httpPreprocessComplete });
-http.route({ path: "/preprocess/fail", method: "POST", handler: httpPreprocessFail });
+http.route({
+  path: "/preprocess/running",
+  method: "POST",
+  handler: httpPreprocessRunning,
+});
+http.route({
+  path: "/preprocess/complete",
+  method: "POST",
+  handler: httpPreprocessComplete,
+});
+http.route({
+  path: "/preprocess/fail",
+  method: "POST",
+  handler: httpPreprocessFail,
+});
 http.route({ path: "/profile/save", method: "POST", handler: httpSaveProfile });
-http.route({ path: "/storage/upload-url", method: "POST", handler: httpGenerateUploadUrl });
+http.route({
+  path: "/storage/upload-url",
+  method: "POST",
+  handler: httpGenerateUploadUrl,
+});
 // Helper to fetch original dataset download URL
 http.route({
   path: "/dataset/download-url",
@@ -91,7 +111,9 @@ http.route({
       return new Response("unauthorized", { status: 401 });
     }
     const { datasetId } = (await request.json()) as { datasetId: string };
-    const doc = await ctx.runQuery(api.datasets.getDataset, { id: datasetId as any });
+    const doc = await ctx.runQuery(api.datasets.getDataset, {
+      id: datasetId as any,
+    });
     if (!doc) return new Response("not found", { status: 404 });
     const url = await ctx.storage.getUrl(doc.storageId as any);
     return new Response(JSON.stringify({ url }), { status: 200 });

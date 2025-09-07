@@ -15,7 +15,7 @@ export default defineSchema({
       v.literal("pending"),
       v.literal("running"),
       v.literal("failed"),
-      v.literal("completed"),
+      v.literal("completed")
     ),
     params: v.object({
       target: v.union(v.string(), v.null()),
@@ -23,14 +23,14 @@ export default defineSchema({
       taskType: v.union(
         v.literal("auto"),
         v.literal("classification"),
-        v.literal("regression"),
+        v.literal("regression")
       ),
       missing: v.union(
         v.literal("auto"),
         v.literal("drop"),
         v.literal("mean"),
         v.literal("median"),
-        v.literal("most_frequent"),
+        v.literal("most_frequent")
       ),
       testSize: v.number(),
     }),

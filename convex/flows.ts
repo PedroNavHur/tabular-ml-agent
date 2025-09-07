@@ -11,14 +11,14 @@ export const startPreprocess: unknown = action({
       taskType: v.union(
         v.literal("auto"),
         v.literal("classification"),
-        v.literal("regression"),
+        v.literal("regression")
       ),
       missing: v.union(
         v.literal("auto"),
         v.literal("drop"),
         v.literal("mean"),
         v.literal("median"),
-        v.literal("most_frequent"),
+        v.literal("most_frequent")
       ),
       testSize: v.number(),
     }),
@@ -33,16 +33,22 @@ export const startPreprocess: unknown = action({
     const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
     // Prefer the Convex HTTP Actions base URL when constructing callback URLs
     const convexUrl =
-      process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+      process.env.CONVEX_SITE_URL ||
+      process.env.CONVEX_URL ||
+      process.env.NEXT_PUBLIC_CONVEX_URL;
 
-    if (!modalUrl) throw new Error("Missing MODAL_PREPROCESS_URL in Convex env");
-    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!modalUrl)
+      throw new Error("Missing MODAL_PREPROCESS_URL in Convex env");
+    if (!webhookSecret)
+      throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
     if (!convexUrl)
       throw new Error(
-        "Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env",
+        "Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env"
       );
 
-    const endpoint = modalUrl.endsWith("/preprocess") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/preprocess`;
+    const endpoint = modalUrl.endsWith("/preprocess")
+      ? modalUrl
+      : `${modalUrl.replace(/\/$/, "")}/preprocess`;
 
     if (endpoint && webhookSecret && convexUrl) {
       await fetch(endpoint, {

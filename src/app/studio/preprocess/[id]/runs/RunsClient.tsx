@@ -38,16 +38,20 @@ export default function RunsClient({ id }: { id: string }) {
                 </td>
               </tr>
             ) : (
-              items.map((r) => (
+              items.map(r => (
                 <tr key={String(r._id)}>
                   <td className="font-mono text-xs">{String(r._id)}</td>
                   <td>
                     <span className="badge badge-outline">{r.status}</span>
                   </td>
-                  <td className="opacity-80">{new Date(r.updatedAt).toLocaleString()}</td>
+                  <td className="opacity-80">
+                    {new Date(r.updatedAt).toLocaleString()}
+                  </td>
                   <td>
                     {r.processedFilename ? (
-                      <span className="badge badge-ghost">{r.processedFilename}</span>
+                      <span className="badge badge-ghost">
+                        {r.processedFilename}
+                      </span>
                     ) : (
                       <span className="opacity-60">—</span>
                     )}
@@ -57,7 +61,9 @@ export default function RunsClient({ id }: { id: string }) {
                       <button
                         className="btn btn-sm btn-outline"
                         onClick={async () => {
-                          const url = await getDownloadUrl({ storageId: r.processedStorageId! });
+                          const url = await getDownloadUrl({
+                            storageId: r.processedStorageId!,
+                          });
                           if (url) window.open(url, "_blank");
                         }}
                       >

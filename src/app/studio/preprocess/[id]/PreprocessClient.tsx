@@ -8,8 +8,11 @@ import type { FunctionReference } from "convex/server";
 
 type TaskType = "auto" | "classification" | "regression";
 
-function parseCsvPreview(text: string, maxRows = 50): { headers: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+function parseCsvPreview(
+  text: string,
+  maxRows = 50
+): { headers: string[]; rows: string[][] } {
+  const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
   if (lines.length === 0) return { headers: [], rows: [] };
   const headers = splitCsvLine(lines[0]);
   const rows: string[][] = [];
@@ -49,17 +52,22 @@ export default function PreprocessClient({ id }: { id: string }) {
   const dataset = useQuery(api.datasets.getDataset, { id: datasetId });
   const getDownloadUrl = useMutation(api.datasets.getDownloadUrl);
   // Use Convex action for preprocessing
-  type StartArgs = { datasetId: Id<"datasets">; params: {
-    target: string | null;
-    idColumn: string | null;
-    taskType: TaskType;
-    missing: "auto" | "drop" | "mean" | "median" | "most_frequent";
-    testSize: number;
-  }};
+  type StartArgs = {
+    datasetId: Id<"datasets">;
+    params: {
+      target: string | null;
+      idColumn: string | null;
+      taskType: TaskType;
+      missing: "auto" | "drop" | "mean" | "median" | "most_frequent";
+      testSize: number;
+    };
+  };
   type StartReturn = { runId: Id<"preprocess_runs"> };
-  const startPreprocessRef = (api as unknown as {
-    flows: { startPreprocess: FunctionReference<"action"> };
-  }).flows.startPreprocess;
+  const startPreprocessRef = (
+    api as unknown as {
+      flows: { startPreprocess: FunctionReference<"action"> };
+    }
+  ).flows.startPreprocess;
   const startPreprocess = useAction(startPreprocessRef);
 
   const info = useMemo(() => dataset, [dataset]);
@@ -70,15 +78,21 @@ export default function PreprocessClient({ id }: { id: string }) {
   const [idColumn, setIdColumn] = useState<string | null>(null);
   const [taskType, setTaskType] = useState<TaskType>("auto");
   const [testSize, setTestSize] = useState<number>(0.2);
-  const [missing, setMissing] = useState<"auto" | "drop" | "mean" | "median" | "most_frequent">("auto");
+  const [missing, setMissing] = useState<
+    "auto" | "drop" | "mean" | "median" | "most_frequent"
+  >("auto");
 
   // Status panels
-  const runs = useQuery(api.datasets.listPreprocessRuns, info ? { datasetId: info._id as Id<"datasets"> } : "skip");
+  const runs = useQuery(
+    api.datasets.listPreprocessRuns,
+    info ? { datasetId: info._id as Id<"datasets"> } : "skip"
+  );
   const latestProfile = useQuery(
     api.datasets.getLatestProfile,
-    info ? { datasetId: info._id as Id<"datasets"> } : "skip",
+    info ? { datasetId: info._id as Id<"datasets"> } : "skip"
   );
-  const hasCompleted = Array.isArray(runs) && runs.some(r => r.status === "completed");
+  const hasCompleted =
+    Array.isArray(runs) && runs.some(r => r.status === "completed");
   const [toast, setToast] = useState<string | null>(null);
 
   const loadPreview = async () => {
@@ -92,7 +106,8 @@ export default function PreprocessClient({ id }: { id: string }) {
       const { headers, rows } = parseCsvPreview(text);
       setHeaders(headers);
       setRows(rows);
-      if (headers.length > 0 && !target) setTarget(headers[headers.length - 1] ?? null);
+      if (headers.length > 0 && !target)
+        setTarget(headers[headers.length - 1] ?? null);
     } catch (e) {
       // noop: MVP scaffolding
     } finally {
@@ -117,7 +132,11 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <div className="text-xs opacity-70">{info.contentType}</div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="btn btn-sm" onClick={loadPreview} disabled={loading}>
+                  <button
+                    className="btn btn-sm"
+                    onClick={loadPreview}
+                    disabled={loading}
+                  >
                     {loading ? "Loading..." : "Load preview"}
                   </button>
                   <button
@@ -142,12 +161,14 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <select
                     className="select select-bordered"
                     value={target ?? ""}
-                    onChange={(e) => setTarget(e.target.value || null)}
+                    onChange={e => setTarget(e.target.value || null)}
                   >
                     <option value="" disabled>
-                      {headers.length ? "Select target" : "Load preview to choose"}
+                      {headers.length
+                        ? "Select target"
+                        : "Load preview to choose"}
                     </option>
-                    {headers.map((h) => (
+                    {headers.map(h => (
                       <option key={h} value={h}>
                         {h}
                       </option>
@@ -162,10 +183,10 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <select
                     className="select select-bordered"
                     value={idColumn ?? ""}
-                    onChange={(e) => setIdColumn(e.target.value || null)}
+                    onChange={e => setIdColumn(e.target.value || null)}
                   >
                     <option value="">None</option>
-                    {headers.map((h) => (
+                    {headers.map(h => (
                       <option key={h} value={h}>
                         {h}
                       </option>
@@ -212,7 +233,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <select
                     className="select select-bordered"
                     value={missing}
-                    onChange={(e) => setMissing(e.target.value as typeof missing)}
+                    onChange={e => setMissing(e.target.value as typeof missing)}
                   >
                     <option value="auto">Auto</option>
                     <option value="drop">Drop rows</option>
@@ -224,7 +245,9 @@ export default function PreprocessClient({ id }: { id: string }) {
 
                 <label className="form-control">
                   <div className="label">
-                    <span className="label-text">Test split: {(testSize * 100).toFixed(0)}%</span>
+                    <span className="label-text">
+                      Test split: {(testSize * 100).toFixed(0)}%
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -232,7 +255,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     max={0.5}
                     step={0.05}
                     value={testSize}
-                    onChange={(e) => setTestSize(parseFloat(e.target.value))}
+                    onChange={e => setTestSize(parseFloat(e.target.value))}
                     className="range"
                   />
                 </label>
@@ -247,11 +270,20 @@ export default function PreprocessClient({ id }: { id: string }) {
                     try {
                       await startPreprocess({
                         datasetId: info._id as Id<"datasets">,
-                        params: { target, idColumn, taskType, missing, testSize },
+                        params: {
+                          target,
+                          idColumn,
+                          taskType,
+                          missing,
+                          testSize,
+                        },
                       });
                       setToast("Preprocess started");
                     } catch (e: unknown) {
-                      const msg = e instanceof Error ? e.message : "Failed to start preprocess";
+                      const msg =
+                        e instanceof Error
+                          ? e.message
+                          : "Failed to start preprocess";
                       setToast(msg);
                     } finally {
                       setTimeout(() => setToast(null), 3000);
@@ -267,7 +299,10 @@ export default function PreprocessClient({ id }: { id: string }) {
                 >
                   Run Profiling
                 </button>
-                <button className="btn btn-outline" disabled={!headers.length || !target}>
+                <button
+                  className="btn btn-outline"
+                  disabled={!headers.length || !target}
+                >
                   Next: Suggest Models
                 </button>
               </div>
@@ -295,11 +330,18 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <>
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">Status: {runs[0].status}</div>
-                        <div className="text-xs opacity-70">Updated: {new Date(runs[0].updatedAt).toLocaleString()}</div>
+                        <div className="font-medium">
+                          Status: {runs[0].status}
+                        </div>
+                        <div className="text-xs opacity-70">
+                          Updated:{" "}
+                          {new Date(runs[0].updatedAt).toLocaleString()}
+                        </div>
                       </div>
                       {runs[0].processedFilename ? (
-                        <div className="badge badge-outline">{runs[0].processedFilename}</div>
+                        <div className="badge badge-outline">
+                          {runs[0].processedFilename}
+                        </div>
                       ) : null}
                     </div>
                     {runs[0].summary ? (
@@ -309,7 +351,10 @@ export default function PreprocessClient({ id }: { id: string }) {
                     ) : null}
                     <div className="card-actions justify-end">
                       {info ? (
-                        <Link href={`/studio/preprocess/${String(info._id)}/runs`} className="btn btn-sm btn-outline">
+                        <Link
+                          href={`/studio/preprocess/${String(info._id)}/runs`}
+                          className="btn btn-sm btn-outline"
+                        >
                           View all runs
                         </Link>
                       ) : null}
@@ -345,7 +390,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <table className="table table-zebra">
                     <thead>
                       <tr>
-                        {headers.map((h) => (
+                        {headers.map(h => (
                           <th key={h}>{h}</th>
                         ))}
                       </tr>
