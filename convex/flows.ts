@@ -1,7 +1,7 @@
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
-import { profileSummaryPrompt } from "./prompts";
+import { profileSummaryPrompt, runCfgPrompt } from "./prompts";
 
 export const startPreprocess: unknown = action({
   args: {
@@ -118,5 +118,56 @@ export const summarizeProfile: unknown = action({
       summary,
     });
     return { summaryId, summary };
+  },
+});
+
+
+export const generateRunCfg: unknown = action({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const [profile, summary] = await Promise.all([
+      ctx.runQuery(api.datasets.getLatestProfile, { datasetId }),
+      ctx.runQuery(api.datasets.getLatestProfileSummary, { datasetId }),
+    ]);
+    if (!profile) throw new Error("No profile found for dataset");
+
+    const prompt = runCfgPrompt(profile.report, summary?.summary ?? "");
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY in Convex env");
+
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-5",
+        messages: [
+          { role: "system", content: "You are a helpful ML engineer." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(`OpenAI error: ${resp.status} ${text}`);
+    }
+    const data = await resp.json();
+    const content: string = data?.choices?.[0]?.message?.content ?? "";
+    let cfg: unknown;
+    try {
+      cfg = JSON.parse(content);
+    } catch {
+      cfg = content;
+    }
+
+    const runCfgId = await ctx.runMutation(api.datasets.saveRunCfg, {
+      datasetId,
+      profileId: profile._id,
+      summaryId: summary?._id,
+      cfg,
+    });
+    return { runCfgId, cfg };
   },
 });

@@ -326,12 +326,15 @@ export default function PreprocessClient({ id }: { id: string }) {
                 >
                   Run Profiling
                 </button>
-                <button
-                  className="btn btn-outline"
-                  disabled={!headers.length || !target}
-                >
-                  Next: Suggest Models
-                </button>
+                {(!headers.length || !target) ? (
+                  <button className="btn btn-outline" disabled>
+                    Next: Suggest Models
+                  </button>
+                ) : (
+                  <a className="btn btn-outline" href={`/studio/suggest/${String(datasetId)}`}>
+                    Next: Suggest Models
+                  </a>
+                )}
               </div>
             </div>
           </div>

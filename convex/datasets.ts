@@ -202,3 +202,35 @@ export const getLatestProfileSummary = query({
     return latest ?? null;
   },
 });
+
+
+export const saveRunCfg = mutation({
+  args: {
+    datasetId: v.id("datasets"),
+    profileId: v.id("profiles"),
+    summaryId: v.optional(v.id("profile_summaries")),
+    cfg: v.any(),
+  },
+  handler: async (ctx, { datasetId, profileId, summaryId, cfg }) => {
+    const id = await ctx.db.insert("run_cfgs", {
+      datasetId,
+      profileId,
+      summaryId,
+      cfg,
+      createdAt: Date.now(),
+    });
+    return id;
+  },
+});
+
+export const getLatestRunCfg = query({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const [latest] = await ctx.db
+      .query("run_cfgs")
+      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .order("desc")
+      .take(1);
+    return latest ?? null;
+  },
+});

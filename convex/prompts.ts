@@ -10,3 +10,21 @@ export function profileSummaryPrompt(report: unknown): string {
 JSON profile:
 ${JSON.stringify(report)}`;
 }
+
+
+export function runCfgPrompt(report: unknown, summary: string): string {
+  const header = `You are an ML engineer. Generate a JSON run configuration for training classical scikit-learn models on a tabular dataset.
+- Use ONLY classical sklearn models (e.g., LogisticRegression, RandomForestClassifier, GradientBoostingClassifier, SVC, LinearRegression, RandomForestRegressor, GradientBoostingRegressor, SVR, etc.).
+- Always set random_state=42 where applicable.
+- Choose sensible preprocessing: scaling (StandardScaler / MinMaxScaler / RobustScaler / none), simple imputation strategies, and one-hot encoding for categoricals.
+- Include: task_type, target, preprocessing, cv (cv_folds, shuffle=true, random_state=42), metric (classification=balanced_accuracy, regression=mae), and top 2–3 candidate models with concise hyperparams.
+- Respond STRICTLY as JSON (no markdown, no extra commentary).`;
+
+  return `${header}
+
+LATEST PROFILE JSON:
+${JSON.stringify(report)}
+
+PROFILE SUMMARY (bulleted JSON or text):
+${summary}`;
+}

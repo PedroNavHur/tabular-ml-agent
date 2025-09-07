@@ -52,4 +52,11 @@ export default defineSchema({
     summary: v.string(),
     createdAt: v.number(),
   }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
+  run_cfgs: defineTable({
+    datasetId: v.id("datasets"),
+    profileId: v.id("profiles"),
+    summaryId: v.optional(v.id("profile_summaries")),
+    cfg: v.any(),
+    createdAt: v.number(),
+  }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
 });
