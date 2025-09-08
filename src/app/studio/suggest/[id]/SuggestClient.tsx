@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useAction, useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "convex/_generated/api";
 import type { Id, Doc } from "convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
+import { toast } from "sonner";
 
 export default function SuggestClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -30,24 +31,16 @@ export default function SuggestClient({ id }: { id: string }) {
   ).flows.startTraining;
   const startTraining = useAction(startTrainingRef);
 
-  const [status, setStatus] = useState<string | null>(null);
-
   useEffect(() => {
-    let cancelled = false;
     (async () => {
       try {
-        setStatus("Generating training plan...");
+        toast("Generating training plan...");
         await generateRunCfg({ datasetId });
-        if (!cancelled) setStatus("Training plan generated");
-        setTimeout(() => !cancelled && setStatus(null), 2500);
+        toast.success("Training plan generated");
       } catch (e) {
-        if (!cancelled) setStatus("Failed to generate plan");
-        setTimeout(() => !cancelled && setStatus(null), 3000);
+        toast.error("Failed to generate plan");
       }
     })();
-    return () => {
-      cancelled = true;
-    };
   }, [datasetId, generateRunCfg]);
 
   const plan = useMemo(() => latestRunCfg?.cfg, [latestRunCfg]);
@@ -77,13 +70,11 @@ export default function SuggestClient({ id }: { id: string }) {
               disabled={!latestRunCfg}
               onClick={async () => {
                 try {
-                  setStatus("Starting training...");
+                  toast("Starting training...");
                   await startTraining({ datasetId });
-                  setStatus("Training started");
+                  toast.success("Training started");
                 } catch (e) {
-                  setStatus("Failed to start training");
-                } finally {
-                  setTimeout(() => setStatus(null), 3000);
+                  toast.error("Failed to start training");
                 }
               }}
             >
@@ -93,13 +84,6 @@ export default function SuggestClient({ id }: { id: string }) {
         </div>
       </div>
 
-      {status ? (
-        <div className="toast toast-end">
-          <div className="alert alert-info">
-            <span>{status}</span>
-          </div>
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card bg-base-200">

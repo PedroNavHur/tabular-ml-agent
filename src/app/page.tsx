@@ -1,102 +1,158 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen">
+      {/* Navbar */}
+      <div className="navbar bg-base-100 shadow-sm">
+        <div className="flex-1">
+          <a className="btn btn-ghost text-xl">TabularML</a>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+        <div className="flex-none gap-2">
+          <a className="btn btn-ghost" href="/studio">Studio</a>
+          <a className="btn btn-primary" href="/studio">Get Started</a>
+        </div>
+      </div>
+
+      {/* Hero */}
+      <section className="hero bg-base-200">
+        <div className="hero-content text-center py-16">
+          <div className="max-w-3xl">
+            <div className="badge badge-outline mb-4">AutoML for tabular data</div>
+            <h1 className="text-4xl md:text-6xl font-bold">
+              One tool to manage your datasets and models
+            </h1>
+            <p className="py-6 opacity-80">
+              Upload a CSV, profile your data, let the assistant suggest
+              classical scikit‑learn models, train them in the cloud, and test
+              predictions — all in minutes, fully reproducible.
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <a className="btn btn-primary" href="/studio">Start in Studio</a>
+              <a className="btn btn-outline" href="#features">Explore features</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Logos strip (placeholder) */}
+      <section className="py-6">
+        <div className="container mx-auto max-w-5xl opacity-70 text-sm flex flex-wrap items-center justify-center gap-6">
+          <span>scikit‑learn</span>
+          <span>Convex</span>
+          <span>Modal</span>
+          <span>pandas</span>
+          <span>NumPy</span>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="container mx-auto max-w-6xl px-4 md:px-6 py-10">
+        <div className="text-center mb-6">
+          <div className="badge badge-outline mb-3">Features</div>
+          <h2 className="text-3xl md:text-4xl font-bold">Latest advanced tooling</h2>
+          <p className="opacity-70">Everything you need for tabular ML workflows</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card bg-base-200">
+            <div className="card-body">
+              <h3 className="card-title">Upload & Profile</h3>
+              <p className="opacity-80">
+                Upload CSVs securely to Convex. Automatic profiling spots missing
+                values, imbalance, and types. Summaries are generated with LLM
+                assistance.
+              </p>
+              <div className="card-actions justify-end">
+                <a className="btn btn-sm" href="/studio">Open Studio</a>
+              </div>
+            </div>
+          </div>
+          <div className="card bg-base-200">
+            <div className="card-body">
+              <h3 className="card-title">Suggest & Train</h3>
+              <p className="opacity-80">
+                The assistant proposes a run config of classical sklearn models.
+                We train in Modal, serialize with skops, and store artifacts in
+                Convex.
+              </p>
+              <div className="card-actions justify-end">
+                <a className="btn btn-sm" href="/studio">Generate Plan</a>
+              </div>
+            </div>
+          </div>
+          <div className="card bg-base-200">
+            <div className="card-body">
+              <h3 className="card-title">Evaluate & Predict</h3>
+              <p className="opacity-80">
+                View a leaderboard with metrics, download models, and test
+                predictions with an interactive form using your trained pipeline.
+              </p>
+              <div className="card-actions justify-end">
+                <a className="btn btn-sm" href="/studio">See Results</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA banner */}
+      <section className="container mx-auto max-w-6xl px-4 md:px-6 py-10">
+        <div className="hero rounded-box bg-base-300">
+          <div className="hero-content text-center py-12">
+            <div className="max-w-2xl">
+              <h3 className="text-2xl md:text-3xl font-bold">Don’t replace. Integrate.</h3>
+              <p className="opacity-80 mt-2">
+                Keep your pandas workflows and sklearn pipelines. TabularML sits
+                on top, making the boring parts delightful and reproducible.
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <a className="btn btn-primary" href="/studio">Start for free</a>
+                <a className="btn btn-outline" href="#features">Learn more</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="container mx-auto max-w-6xl px-4 md:px-6 py-8">
+        <div className="stats stats-vertical md:stats-horizontal shadow w-full">
+          <div className="stat">
+            <div className="stat-title">Models Trained</div>
+            <div className="stat-value">50+</div>
+            <div className="stat-desc">Across classification & regression</div>
+          </div>
+          <div className="stat">
+            <div className="stat-title">Avg. Setup Time</div>
+            <div className="stat-value">&lt; 5m</div>
+            <div className="stat-desc">From upload to first results</div>
+          </div>
+          <div className="stat">
+            <div className="stat-title">Reproducible</div>
+            <div className="stat-value">100%</div>
+            <div className="stat-desc">Skops artifacts + manifests</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer bg-base-200 p-10">
+        <aside>
+          <a className="btn btn-ghost text-xl">TabularML</a>
+          <p className="opacity-70 max-w-sm">
+            AutoML for tabular data. Built on Next.js, Convex, Modal and
+            scikit‑learn.
+          </p>
+        </aside>
+        <nav>
+          <h6 className="footer-title">Product</h6>
+          <a className="link link-hover" href="/studio">Studio</a>
+          <a className="link link-hover" href="#features">Features</a>
+        </nav>
+        <nav>
+          <h6 className="footer-title">Resources</h6>
+          <a className="link link-hover" href="https://scikit-learn.org/">scikit‑learn</a>
+          <a className="link link-hover" href="https://www.convex.dev/">Convex</a>
+          <a className="link link-hover" href="https://modal.com/">Modal</a>
+        </nav>
       </footer>
     </div>
   );

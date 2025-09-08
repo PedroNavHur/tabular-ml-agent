@@ -4,6 +4,7 @@ import type { Id, Doc } from "convex/_generated/dataModel";
 import { useAction, useMutation, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useMemo, useState } from "react";
 
 type TaskType = "auto" | "classification" | "regression";
@@ -51,18 +52,6 @@ export default function PreprocessClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
   const dataset = useQuery(api.datasets.getDataset, { id: datasetId });
   const getDownloadUrl = useMutation(api.datasets.getDownloadUrl);
-  // Use Convex action for preprocessing
-  type StartArgs = {
-    datasetId: Id<"datasets">;
-    params: {
-      target: string | null;
-      idColumn: string | null;
-      taskType: TaskType;
-      missing: "auto" | "drop" | "mean" | "median" | "most_frequent";
-      testSize: number;
-    };
-  };
-  type StartReturn = { runId: Id<"preprocess_runs"> };
   const startPreprocessRef = (
     api as unknown as {
       flows: { startPreprocess: FunctionReference<"action"> };
@@ -103,7 +92,6 @@ export default function PreprocessClient({ id }: { id: string }) {
   ) as Doc<"profile_summaries"> | null | undefined;
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
-  const [toast, setToast] = useState<string | null>(null);
 
   const loadPreview = async () => {
     if (!info) return;
@@ -288,15 +276,15 @@ export default function PreprocessClient({ id }: { id: string }) {
                           testSize,
                         },
                       });
-                      setToast("Preprocess started");
+                      toast.success("Preprocess started");
                     } catch (e: unknown) {
                       const msg =
                         e instanceof Error
                           ? e.message
                           : "Failed to start preprocess";
-                      setToast(msg);
+                      toast.error(msg);
                     } finally {
-                      setTimeout(() => setToast(null), 3000);
+                      // no-op
                     }
                   }}
                 >
@@ -312,15 +300,15 @@ export default function PreprocessClient({ id }: { id: string }) {
                       await summarizeProfile({
                         datasetId: info._id as Id<"datasets">,
                       });
-                      setToast("Profile summarized");
+                      toast.success("Profile summarized");
                     } catch (e: unknown) {
                       const msg =
                         e instanceof Error
                           ? e.message
                           : "Failed to summarize profile";
-                      setToast(msg);
+                      toast.error(msg);
                     } finally {
-                      setTimeout(() => setToast(null), 3000);
+                      // no-op
                     }
                   }}
                 >
@@ -339,13 +327,7 @@ export default function PreprocessClient({ id }: { id: string }) {
             </div>
           </div>
 
-          {toast ? (
-            <div className="toast toast-end">
-              <div className="alert alert-success">
-                <span>{toast}</span>
-              </div>
-            </div>
-          ) : null}
+          {/* Sonner handles toasts globally */}
 
           {/* Status Panels */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -368,11 +350,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                           {new Date(runs[0].updatedAt).toLocaleString()}
                         </div>
                       </div>
-                      {runs[0].processedFilename ? (
-                        <div className="badge badge-outline">
-                          {runs[0].processedFilename}
-                        </div>
-                      ) : null}
+                      {/* processed filename omitted to avoid long names cluttering the UI */}
                     </div>
                     {runs[0].summary ? (
                       <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
@@ -417,7 +395,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                 <div className="opacity-70">Loading...</div>
               ) : !latestProfileSummary ? (
                 <div className="opacity-70">
-                  No summary yet. Use <br>Run Profiling</br> to generate.
+                  No summary yet. Use &quot;Run Profiling&quot; to generate.
                 </div>
               ) : (
                 (() => {

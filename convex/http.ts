@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
+import type { Id, Doc } from "./_generated/dataModel";
 
 const httpPreprocessRunning = httpAction(async (ctx, request) => {
   const secret = request.headers.get("x-webhook-secret");
@@ -131,12 +131,10 @@ http.route({
       return new Response("unauthorized", { status: 401 });
     }
     const { datasetId } = (await request.json()) as { datasetId: string };
-    const runs = await ctx.runQuery(api.datasets.listPreprocessRuns, {
+    const runs = (await ctx.runQuery(api.datasets.listPreprocessRuns, {
       datasetId: datasetId as Id<"datasets">,
-    });
-    const completed = Array.isArray(runs)
-      ? runs.find((r: any) => r.status === "completed" && r.processedStorageId)
-      : undefined;
+    })) as Doc<"preprocess_runs">[];
+    const completed = runs.find((r) => r.status === "completed" && r.processedStorageId !== undefined);
     if (!completed?.processedStorageId) return new Response("not found", { status: 404 });
     const url = await ctx.storage.getUrl(completed.processedStorageId);
     return new Response(JSON.stringify({ url }), { status: 200 });

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAction, useMutation, useQuery } from "convex/react";
+import { toast } from "sonner";
 import { api } from "convex/_generated/api";
 import type { Id, Doc } from "convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
@@ -29,19 +30,17 @@ export default function TestClient({ id }: { id: string }) {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [result, setResult] = useState<unknown>(null);
-  const [status, setStatus] = useState<string | null>(null);
   const [samples, setSamples] = useState<Record<string, string>[]>([]);
   const [sampleIndex, setSampleIndex] = useState<number | "">("");
 
   async function loadSamples() {
     try {
-      setStatus("Loading samples...");
+      toast("Loading samples...");
       const latestCompleted = Array.isArray(runs)
         ? runs.find((r) => r.status === "completed" && r.processedStorageId)
         : undefined;
       if (!latestCompleted?.processedStorageId) {
-        setStatus("No processed data found");
-        setTimeout(() => setStatus(null), 2000);
+        toast.error("No processed data found");
         return;
       }
       const url = await getDownloadUrl({ storageId: latestCompleted.processedStorageId });
@@ -50,10 +49,9 @@ export default function TestClient({ id }: { id: string }) {
       const text = await res.text();
       const parsed = parseCsv(text, 50);
       setSamples(parsed.rows);
-      setStatus(null);
+      toast.success("Samples loaded");
     } catch (e) {
-      setStatus("Failed to load samples");
-      setTimeout(() => setStatus(null), 2000);
+      toast.error("Failed to load samples");
     }
   }
 
@@ -117,13 +115,7 @@ export default function TestClient({ id }: { id: string }) {
         </div>
       </div>
 
-      {status ? (
-        <div className="toast toast-end">
-          <div className="alert alert-info">
-            <span>{status}</span>
-          </div>
-        </div>
-      ) : null}
+      
 
       <div className="card bg-base-200">
         <div className="card-body gap-3">
@@ -224,15 +216,13 @@ export default function TestClient({ id }: { id: string }) {
               onClick={async () => {
                 if (!selectedModel) return;
                 try {
-                  setStatus("Predicting...");
+                  toast("Predicting...");
                   const modelId = selectedModel as unknown as Id<"trained_models">;
                   const res = await predict({ modelId, input: form });
                   setResult(res);
-                  setStatus("Done");
+                  toast.success("Done");
                 } catch (e) {
-                  setStatus("Failed to predict");
-                } finally {
-                  setTimeout(() => setStatus(null), 2000);
+                  toast.error("Failed to predict");
                 }
               }}
             >
