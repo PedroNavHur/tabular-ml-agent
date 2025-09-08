@@ -187,4 +187,25 @@ http.route({
   }),
 });
 
+
+
+// Download URL for a trained model by id
+http.route({
+  path: "/models/download-url",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const secret = request.headers.get("x-webhook-secret");
+    if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    const { modelId } = (await request.json()) as { modelId: string };
+    const doc = await ctx.runQuery(api.datasets.getTrainedModel, {
+      id: modelId as Id<"trained_models">,
+    });
+    if (!doc) return new Response("not found", { status: 404 });
+    const url = await ctx.storage.getUrl(doc.storageId);
+    return new Response(JSON.stringify({ url }), { status: 200 });
+  }),
+});
+
 export default http;

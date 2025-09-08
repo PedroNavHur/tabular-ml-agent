@@ -269,3 +269,12 @@ export const listTrainedModels = query({
     return items;
   },
 });
+
+export const getTrainedModel = query({
+  args: { id: v.id("trained_models") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
+  },
+});
+
+

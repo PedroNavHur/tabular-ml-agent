@@ -128,7 +128,10 @@ export default function ResultsClient({ id }: { id: string }) {
                       <td className="text-xs opacity-90">
                         <MetricsCell metrics={m.metrics} />
                       </td>
-                      <td className="text-right">
+                      <td className="text-right flex items-center justify-end gap-2">
+                        <Link className="btn btn-sm" href={`/studio/test/${id}?model=${String(m._id)}`}>
+                          Test
+                        </Link>
                         <button
                           className="btn btn-sm btn-outline"
                           onClick={async () => {

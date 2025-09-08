@@ -222,3 +222,41 @@ export const startTraining: unknown = action({
     return data;
   },
 });
+
+
+export const predictModel: unknown = action({
+  args: { modelId: v.id("trained_models"), input: v.any() },
+  handler: async (ctx, { modelId, input }) => {
+    const modalUrl = process.env.MODAL_PREDICT_URL;
+    const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
+    const convexUrl = process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!modalUrl) throw new Error("Missing MODAL_PREDICT_URL in Convex env");
+    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!convexUrl) throw new Error("Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env");
+
+    const urlResp = await fetch(`${convexUrl}/models/download-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-webhook-secret": webhookSecret },
+      body: JSON.stringify({ modelId }),
+    });
+    if (!urlResp.ok) {
+      const t = await urlResp.text();
+      throw new Error(`Failed to get model URL: ${urlResp.status} ${t}`);
+    }
+    const data = await urlResp.json();
+    const url = data.url;
+
+    const endpoint = modalUrl.endsWith("/predict") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/predict`;
+    const body = { modelUrl: url, X: Array.isArray(input) ? input : [input] };
+    const resp = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(`Predict error: ${resp.status} ${t}`);
+    }
+    return await resp.json();
+  },
+});
