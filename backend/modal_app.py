@@ -396,3 +396,50 @@ def training_app():
         return {"ok": True, "results": results}
 
     return web_app
+
+
+@app.function(image=image, secrets=[convex_env])
+@modal.asgi_app()
+def predict_app():
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel
+
+    web_app = FastAPI()
+
+    class PredictRequest(BaseModel):
+        modelUrl: str
+        X: list[dict]
+
+    @web_app.post("/predict")
+    async def predict(req: PredictRequest):
+        import requests
+        import pandas as pd
+        from skops.io import loads as skops_loads, get_untrusted_types
+        import numpy as np  # noqa: F401
+
+        r = requests.get(req.modelUrl)
+        r.raise_for_status()
+        try:
+            trusted = list(get_untrusted_types(r.content))
+        except Exception:
+            trusted = []
+        extra = ["sklearn.compose._column_transformer._RemainderColsList"]
+        for t in extra:
+            if t not in trusted:
+                trusted.append(t)
+        model = skops_loads(r.content, trusted=trusted)
+        X_list = req.X if isinstance(req.X, list) else [req.X]
+        df = pd.DataFrame(X_list)
+        try:
+            y_pred = model.predict(df).tolist()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"predict failed: {e}")
+        proba = None
+        if hasattr(model, "predict_proba"):
+            try:
+                proba = getattr(model, "predict_proba")(df).tolist()
+            except Exception:
+                proba = None
+        return {"predictions": y_pred, "probabilities": proba}
+
+    return web_app
