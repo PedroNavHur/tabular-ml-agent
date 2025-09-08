@@ -16,11 +16,19 @@ export default function SuggestClient({ id }: { id: string }) {
     | Doc<"run_cfgs">
     | null
     | undefined;
+  const trainedModels = useQuery(api.datasets.listTrainedModels, { datasetId }) as
+    | Doc<"trained_models">[]
+    | null
+    | undefined;
 
   const generateRunCfgRef = (
     api as unknown as { flows: { generateRunCfg: FunctionReference<"action"> } }
   ).flows.generateRunCfg;
   const generateRunCfg = useAction(generateRunCfgRef);
+  const startTrainingRef = (
+    api as unknown as { flows: { startTraining: FunctionReference<"action"> } }
+  ).flows.startTraining;
+  const startTraining = useAction(startTrainingRef);
 
   const [status, setStatus] = useState<string | null>(null);
 
@@ -55,12 +63,28 @@ export default function SuggestClient({ id }: { id: string }) {
             </Link>
           </div>
           <div className="flex gap-2">
+            {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
+              <Link className="btn" href={`/studio/results/${id}`}>
+                View Results
+              </Link>
+            ) : (
+              <button className="btn" disabled>
+                View Results
+              </button>
+            )}
             <button
               className="btn btn-primary"
               disabled={!latestRunCfg}
               onClick={async () => {
-                setStatus("Starting training... (coming soon)");
-                setTimeout(() => setStatus(null), 2500);
+                try {
+                  setStatus("Starting training...");
+                  await startTraining({ datasetId });
+                  setStatus("Training started");
+                } catch (e) {
+                  setStatus("Failed to start training");
+                } finally {
+                  setTimeout(() => setStatus(null), 3000);
+                }
               }}
             >
               Train Models

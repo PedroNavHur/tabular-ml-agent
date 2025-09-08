@@ -171,3 +171,54 @@ export const generateRunCfg: unknown = action({
     return { runCfgId, cfg };
   },
 });
+
+
+export const startTraining: unknown = action({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const plan = await ctx.runQuery(api.datasets.getLatestRunCfg, { datasetId });
+    if (!plan) throw new Error("No run config found. Generate one first.");
+
+    const modalUrl = process.env.MODAL_TRAIN_URL;
+    const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
+    const convexUrl = process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!modalUrl) throw new Error("Missing MODAL_TRAIN_URL in Convex env");
+    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!convexUrl) throw new Error("Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env");
+
+    const processedResp = await fetch(`${convexUrl}/dataset/processed-download-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-webhook-secret": webhookSecret },
+      body: JSON.stringify({ datasetId }),
+    });
+    if (!processedResp.ok) {
+      const t = await processedResp.text();
+      throw new Error(`Failed to get processed CSV URL: ${processedResp.status} ${t}`);
+    }
+    const processed = await processedResp.json();
+
+    const endpoint = modalUrl.endsWith("/train") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/train`;
+    const body = {
+      datasetId,
+      runCfgId: plan._id,
+      csvUrl: processed.url,
+      cfg: plan.cfg,
+      secret: webhookSecret,
+      callbacks: {
+        uploadUrl: `${convexUrl}/storage/upload-url`,
+        saveModel: `${convexUrl}/models/save`,
+      },
+    };
+    const resp = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(`Training error: ${resp.status} ${t}`);
+    }
+    const data = await resp.json();
+    return data;
+  },
+});

@@ -234,3 +234,38 @@ export const getLatestRunCfg = query({
     return latest ?? null;
   },
 });
+
+
+export const saveTrainedModel = mutation({
+  args: {
+    datasetId: v.id("datasets"),
+    runCfgId: v.optional(v.id("run_cfgs")),
+    modelName: v.string(),
+    storageId: v.id("_storage"),
+    metrics: v.any(),
+  },
+  handler: async (ctx, { datasetId, runCfgId, modelName, storageId, metrics }) => {
+    const id = await ctx.db.insert("trained_models", {
+      datasetId,
+      runCfgId,
+      modelName,
+      storageId,
+      metrics,
+      createdAt: Date.now(),
+    });
+    return id;
+  },
+});
+
+
+export const listTrainedModels = query({
+  args: { datasetId: v.id("datasets") },
+  handler: async (ctx, { datasetId }) => {
+    const items = await ctx.db
+      .query("trained_models")
+      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .order("desc")
+      .collect();
+    return items;
+  },
+});

@@ -121,4 +121,70 @@ http.route({
   }),
 });
 
+// Helper to fetch latest processed CSV URL
+http.route({
+  path: "/dataset/processed-download-url",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const secret = request.headers.get("x-webhook-secret");
+    if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    const { datasetId } = (await request.json()) as { datasetId: string };
+    const runs = await ctx.runQuery(api.datasets.listPreprocessRuns, {
+      datasetId: datasetId as Id<"datasets">,
+    });
+    const completed = Array.isArray(runs)
+      ? runs.find((r: any) => r.status === "completed" && r.processedStorageId)
+      : undefined;
+    if (!completed?.processedStorageId) return new Response("not found", { status: 404 });
+    const url = await ctx.storage.getUrl(completed.processedStorageId);
+    return new Response(JSON.stringify({ url }), { status: 200 });
+  }),
+});
+
+// Latest run cfg for dataset
+http.route({
+  path: "/run_cfg/latest",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const secret = request.headers.get("x-webhook-secret");
+    if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    const { datasetId } = (await request.json()) as { datasetId: string };
+    const cfg = await ctx.runQuery(api.datasets.getLatestRunCfg, {
+      datasetId: datasetId as Id<"datasets">,
+    });
+    return new Response(JSON.stringify({ cfg }), { status: 200 });
+  }),
+});
+
+// Save trained model metadata
+http.route({
+  path: "/models/save",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const secret = request.headers.get("x-webhook-secret");
+    if (secret !== process.env.PREPROCESS_WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    const body = (await request.json()) as {
+      datasetId: string;
+      runCfgId?: string;
+      modelName: string;
+      storageId: string;
+      metrics: unknown;
+    };
+    const id = await ctx.runMutation(api.datasets.saveTrainedModel, {
+      datasetId: body.datasetId as Id<"datasets">,
+      runCfgId: (body.runCfgId as Id<"run_cfgs">) ?? undefined,
+      modelName: body.modelName,
+      storageId: body.storageId as Id<"_storage">,
+      metrics: body.metrics,
+    });
+    return new Response(JSON.stringify({ id }), { status: 200 });
+  }),
+});
+
 export default http;

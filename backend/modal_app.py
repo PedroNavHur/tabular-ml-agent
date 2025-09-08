@@ -16,6 +16,7 @@ image = (
         "numpy<2",
         "scikit-learn<1.6",
         "requests",
+        "skops",
     )
     # propagate Convex URL to the container if set locally
     .env(
@@ -256,5 +257,142 @@ def fastapi_app():
             except Exception:
                 pass
             raise
+
+    return web_app
+
+
+@app.function(image=image, secrets=[convex_env])
+@modal.asgi_app()
+def training_app():
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel
+
+    web_app = FastAPI()
+
+    class Callbacks(BaseModel):
+        uploadUrl: str
+        saveModel: str | None = None
+
+    class TrainRequest(BaseModel):
+        datasetId: str
+        runCfgId: str | None = None
+        csvUrl: str
+        cfg: dict
+        secret: str
+        callbacks: Callbacks
+
+    @web_app.post("/train")
+    async def train(req: TrainRequest):
+        import pandas as pd
+        import requests
+        from io import BytesIO
+        from sklearn.compose import ColumnTransformer
+        from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler, RobustScaler
+        from sklearn.pipeline import Pipeline
+        from sklearn.model_selection import cross_val_score
+        from sklearn.metrics import make_scorer, balanced_accuracy_score, mean_absolute_error
+        from skops.io import dumps as skops_dumps
+
+        r = requests.get(req.csvUrl)
+        r.raise_for_status()
+        df = pd.read_csv(BytesIO(r.content))
+
+        cfg = req.cfg or {}
+        target = cfg.get("target")
+        if not target or target not in df.columns:
+            raise HTTPException(status_code=400, detail="Invalid or missing target in cfg")
+        task_type = cfg.get("task_type", "classification")
+        preprocessing = cfg.get("preprocessing", {})
+        models = cfg.get("models", [])
+        cv_cfg = cfg.get("cv", {"cv_folds": 5, "shuffle": True, "random_state": 42})
+
+        X = df.drop(columns=[target])
+        y = df[target]
+        num_cols = X.select_dtypes(include=["number"]).columns.tolist()
+        cat_cols = [c for c in X.columns if c not in num_cols]
+
+        scaler_name = preprocessing.get("scaler", "none")
+        scaler = None
+        if scaler_name == "StandardScaler":
+            scaler = StandardScaler()
+        elif scaler_name == "MinMaxScaler":
+            scaler = MinMaxScaler()
+        elif scaler_name == "RobustScaler":
+            scaler = RobustScaler()
+
+        transformers = []
+        if cat_cols:
+            transformers.append(("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols))
+        if num_cols:
+            if scaler is not None:
+                transformers.append(("num", scaler, num_cols))
+            else:
+                transformers.append(("num", "passthrough", num_cols))
+        preprocessor = ColumnTransformer(transformers=transformers, remainder="drop")
+
+        from sklearn.linear_model import LogisticRegression, LinearRegression
+        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
+        from sklearn.svm import SVC, SVR
+
+        registry = {
+            "LogisticRegression": LogisticRegression,
+            "RandomForestClassifier": RandomForestClassifier,
+            "GradientBoostingClassifier": GradientBoostingClassifier,
+            "SVC": SVC,
+            "LinearRegression": LinearRegression,
+            "RandomForestRegressor": RandomForestRegressor,
+            "GradientBoostingRegressor": GradientBoostingRegressor,
+            "SVR": SVR,
+        }
+
+        if task_type == "regression":
+            scorer = make_scorer(mean_absolute_error, greater_is_better=False)
+            metric_name = "mae"
+        else:
+            scorer = make_scorer(balanced_accuracy_score)
+            metric_name = "balanced_accuracy"
+
+        results = []
+        for m in models:
+            name = m.get("name")
+            params = m.get("params", {})
+            if name not in registry:
+                continue
+            ModelCls = registry[name]
+            try:
+                inst = ModelCls()
+                if hasattr(inst, "random_state"):
+                    params.setdefault("random_state", 42)
+            except Exception:
+                pass
+            model = ModelCls(**params)
+            pipe = Pipeline(steps=[("prep", preprocessor), ("model", model)])
+            scores = cross_val_score(pipe, X, y, cv=cv_cfg.get("cv_folds", 5), scoring=scorer)
+            mean_score = float(scores.mean())
+            std_score = float(scores.std())
+            pipe.fit(X, y)
+            try:
+                blob = skops_dumps(pipe)
+            except Exception:
+                blob = None
+            upload_info = _http_post_json(req.callbacks.uploadUrl, {}, req.secret)
+            upload_url = upload_info.get("url")
+            if not upload_url:
+                raise HTTPException(status_code=500, detail="Failed to get upload URL")
+            ur = requests.post(upload_url, headers={"content-type": "application/octet-stream"}, data=blob)
+            ur.raise_for_status()
+            storage_id = ur.json().get("storageId")
+            metrics = {metric_name: mean_score, f"{metric_name}_std": std_score}
+            if req.callbacks.saveModel:
+                _http_post(req.callbacks.saveModel, {
+                    "datasetId": req.datasetId,
+                    "runCfgId": req.runCfgId,
+                    "modelName": name,
+                    "storageId": storage_id,
+                    "metrics": metrics,
+                }, req.secret)
+            results.append({"model": name, "storageId": storage_id, "metrics": metrics})
+
+        return {"ok": True, "results": results}
 
     return web_app
