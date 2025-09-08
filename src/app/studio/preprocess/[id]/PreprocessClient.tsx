@@ -106,7 +106,7 @@ export default function PreprocessClient({ id }: { id: string }) {
       setRows(rows);
       if (headers.length > 0 && !target)
         setTarget(headers[headers.length - 1] ?? null);
-    } catch (e) {
+    } catch {
       // noop: MVP scaffolding
     } finally {
       setLoading(false);
