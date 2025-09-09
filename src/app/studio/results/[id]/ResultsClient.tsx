@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ArrowBigLeft } from "lucide-react";
 import { useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
@@ -105,15 +106,20 @@ export default function ResultsClient({ id }: { id: string }) {
 
   return (
     <div className="w-full max-w-6xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Training Results</h2>
-        <div className="flex gap-2">
-          <Link className="btn btn-ghost" href={`/studio/preprocess/${id}`}>
-            ← Prev: Preprocess
-          </Link>
-          <Link className="btn btn-outline" href={`/studio/train/${id}`}>
-            Train
-          </Link>
+      <h2 className="text-xl font-semibold">Training Results</h2>
+      <div className="card bg-base-200">
+        <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+          <div className="flex gap-2">
+            <Link className="btn btn-outline" href={`/studio/preprocess/${id}`}>
+              <ArrowBigLeft className="h-4 w-4" />
+              <span>Prev: Preprocess</span>
+            </Link>
+          </div>
+          <div className="flex gap-2">
+            <Link className="btn btn-outline" href={`/studio/train/${id}`}>
+              Train
+            </Link>
+          </div>
         </div>
       </div>
 

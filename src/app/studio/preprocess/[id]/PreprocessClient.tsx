@@ -5,6 +5,7 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
 import Link from "next/link";
 import { toast } from "sonner";
+import { ArrowBigRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useToastOp } from "@/hooks/useToastOp";
 
@@ -94,7 +95,6 @@ export default function PreprocessClient({ id }: { id: string }) {
   const [target, setTarget] = useState<string | null>(null);
   const [idColumn, setIdColumn] = useState<string | null>(null);
   const [taskType, setTaskType] = useState<TaskType>("auto");
-  const [testSize, setTestSize] = useState<number>(0.2);
   const [missing, setMissing] = useState<
     "auto" | "drop" | "mean" | "median" | "most_frequent"
   >("auto");
@@ -282,22 +282,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                   </select>
                 </label>
 
-                <label className="form-control">
-                  <div className="label">
-                    <span className="label-text">
-                      Test split: {(testSize * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0.1}
-                    max={0.5}
-                    step={0.05}
-                    value={testSize}
-                    onChange={e => setTestSize(parseFloat(e.target.value))}
-                    className="range"
-                  />
-                </label>
+                {/* Removed test split control; using default 20% split server-side */}
               </div>
 
               <div className="card-actions justify-end pt-2">
@@ -314,7 +299,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                           idColumn,
                           taskType,
                           missing,
-                          testSize,
+                          testSize: 0.2,
                         },
                       });
                       toast.success("Preprocess started");
@@ -357,14 +342,16 @@ export default function PreprocessClient({ id }: { id: string }) {
                 </button>
                 {!headers.length || !target ? (
                   <button className="btn btn-outline" disabled>
-                    Next: Train
+                    <ArrowBigRight className="h-4 w-4" />
+                    <span>Next: Train</span>
                   </button>
                 ) : (
                   <a
                     className="btn btn-outline"
                     href={`/studio/train/${String(datasetId)}`}
                   >
-                    Next: Train
+                    <ArrowBigRight className="h-4 w-4" />
+                    <span>Next: Train</span>
                   </a>
                 )}
               </div>
@@ -423,9 +410,19 @@ export default function PreprocessClient({ id }: { id: string }) {
                 ) : !latestProfile ? (
                   <div className="opacity-70">No profile saved yet.</div>
                 ) : (
-                  <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
-                    {JSON.stringify(latestProfile.report, null, 2)}
-                  </pre>
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Status: saved</div>
+                        <div className="text-xs opacity-70">
+                          Created: {new Date(latestProfile.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
+                      {JSON.stringify(latestProfile.report, null, 2)}
+                    </pre>
+                  </>
                 )}
               </div>
             </div>

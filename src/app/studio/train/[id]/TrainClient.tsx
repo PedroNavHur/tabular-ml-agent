@@ -5,7 +5,9 @@ import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
 import Link from "next/link";
+import { ArrowBigLeft } from "lucide-react";
 import { useMemo } from "react";
+import { ArrowBigRight } from "lucide-react";
 
 export default function TrainClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -42,20 +44,12 @@ export default function TrainClient({ id }: { id: string }) {
       <div className="card bg-base-200">
         <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-ghost" href={`/studio/preprocess/${id}`}>
-              ← Prev: Preprocess
+            <Link className="btn btn-outline" href={`/studio/preprocess/${id}`}>
+              <ArrowBigLeft className="h-4 w-4" />
+              <span>Prev: Preprocess</span>
             </Link>
           </div>
           <div className="flex gap-2">
-            {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
-              <Link className="btn" href={`/studio/results/${id}`}>
-                View Results
-              </Link>
-            ) : (
-              <button className="btn" disabled>
-                View Results
-              </button>
-            )}
             <button
               className="btn"
               disabled={!latestSummary || !!latestRunCfg || genOp.inFlight}
@@ -86,6 +80,17 @@ export default function TrainClient({ id }: { id: string }) {
             >
               Train Models
             </button>
+            {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
+              <Link className="btn btn-outline" href={`/studio/results/${id}`}>
+                <ArrowBigRight className="h-4 w-4" />
+                <span>Next: View Results</span>
+              </Link>
+            ) : (
+              <button className="btn btn-outline" disabled>
+                <ArrowBigRight className="h-4 w-4" />
+                <span>Next: View Results</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

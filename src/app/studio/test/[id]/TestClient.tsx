@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowBigLeft } from "lucide-react";
 import { useAction, useMutation, useQuery } from "convex/react";
 // toast handled via useToastOp
 import { api } from "convex/_generated/api";
@@ -192,7 +193,8 @@ export default function TestClient({ id }: { id: string }) {
         <h2 className="text-xl font-semibold">Test Trained Model</h2>
         <div className="flex gap-2">
           <Link className="btn btn-ghost" href={`/studio/results/${id}`}>
-            ← Prev: Results
+            <ArrowBigLeft className="h-4 w-4" />
+            <span>Prev: Results</span>
           </Link>
         </div>
       </div>
