@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { Download } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -58,17 +59,20 @@ export default function RunsClient({ id }: { id: string }) {
                   </td>
                   <td className="text-right">
                     {r.processedStorageId ? (
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={async () => {
-                          const url = await getDownloadUrl({
-                            storageId: r.processedStorageId!,
-                          });
-                          if (url) window.open(url, "_blank");
-                        }}
-                      >
-                        Download
-                      </button>
+                      <div className="tooltip" data-tip="Download">
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={async () => {
+                            const url = await getDownloadUrl({
+                              storageId: r.processedStorageId!,
+                            });
+                            if (url) window.open(url, "_blank");
+                          }}
+                          aria-label="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      </div>
                     ) : (
                       <span className="opacity-60">—</span>
                     )}

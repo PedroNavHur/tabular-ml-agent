@@ -182,7 +182,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     Preprocess
                   </button>
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-secondary"
                     disabled={!headers.length || !target || !hasCompleted}
                     title={!hasCompleted ? "Run preprocessing first" : undefined}
                     onClick={async () => {
@@ -208,13 +208,13 @@ export default function PreprocessClient({ id }: { id: string }) {
                 </div>
                 <div>
                   {!headers.length || !target ? (
-                    <button className="btn btn-outline" disabled>
+                    <button className="btn btn-primary" disabled>
                       <span>Train</span>
                       <ArrowBigRight className="h-4 w-4" />
                     </button>
                   ) : (
                     <a
-                      className="btn btn-outline"
+                      className="btn btn-primary"
                       href={`/studio/train/${String(datasetId)}`}
                     >
                       <span>Train</span>
@@ -319,7 +319,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     <input
                       type="radio"
                       name="task"
-                      className="btn join-item"
+                      className={`btn join-item ${taskType === "auto" ? "btn-secondary" : ""}`}
                       aria-label="Auto"
                       checked={taskType === "auto"}
                       onChange={() => setTaskType("auto")}
@@ -327,7 +327,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     <input
                       type="radio"
                       name="task"
-                      className="btn join-item"
+                      className={`btn join-item ${taskType === "classification" ? "btn-secondary" : ""}`}
                       aria-label="Classification"
                       checked={taskType === "classification"}
                       onChange={() => setTaskType("classification")}
@@ -335,7 +335,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     <input
                       type="radio"
                       name="task"
-                      className="btn join-item"
+                      className={`btn join-item ${taskType === "regression" ? "btn-secondary" : ""}`}
                       aria-label="Regression"
                       checked={taskType === "regression"}
                       onChange={() => setTaskType("regression")}

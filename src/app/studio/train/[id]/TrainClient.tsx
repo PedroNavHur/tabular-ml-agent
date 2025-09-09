@@ -68,7 +68,7 @@ export default function TrainClient({ id }: { id: string }) {
               Generate Run Config
             </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-secondary"
               disabled={!latestRunCfg || !latestSummary || startOp.inFlight}
               onClick={async () => {
                 if (startOp.inFlight) return;
@@ -82,12 +82,12 @@ export default function TrainClient({ id }: { id: string }) {
               Train Models
             </button>
             {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
-              <Link className="btn btn-outline" href={`/studio/results/${id}`}>
+              <Link className="btn btn-primary" href={`/studio/results/${id}`}>
                 <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
               </Link>
             ) : (
-              <button className="btn btn-outline" disabled>
+              <button className="btn btn-primary" disabled>
                 <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
               </button>

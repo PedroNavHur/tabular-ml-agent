@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id, Doc } from "convex/_generated/dataModel";
+import { Download } from "lucide-react";
 import { JsonEditor, type JsonData } from "json-edit-react";
 
 export default function ResultsClient({ id }: { id: string }) {
@@ -165,17 +166,20 @@ export default function ResultsClient({ id }: { id: string }) {
                         >
                           Test
                         </Link>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={async () => {
-                            const url = await getDownloadUrl({
-                              storageId: m.storageId,
-                            });
-                            if (url) window.open(url, "_blank");
-                          }}
-                        >
-                          Download
-                        </button>
+                        <div className="tooltip" data-tip="Download">
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={async () => {
+                              const url = await getDownloadUrl({
+                                storageId: m.storageId,
+                              });
+                              if (url) window.open(url, "_blank");
+                            }}
+                            aria-label="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

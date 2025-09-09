@@ -1,5 +1,6 @@
 "use client";
 import { useMemo } from "react";
+import { Download } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -71,17 +72,20 @@ export default function DatasetsTable() {
                       >
                         Preprocess
                       </Link>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={async () => {
-                          const url = await getDownloadUrl({
-                            storageId: d.storageId,
-                          });
-                          if (url) window.open(url, "_blank");
-                        }}
-                      >
-                        Download
-                      </button>
+                      <div className="tooltip" data-tip="Download">
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={async () => {
+                            const url = await getDownloadUrl({
+                              storageId: d.storageId,
+                            });
+                            if (url) window.open(url, "_blank");
+                          }}
+                          aria-label="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
