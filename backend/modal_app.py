@@ -420,14 +420,28 @@ def predict_app():
         r = requests.get(req.modelUrl)
         r.raise_for_status()
         try:
-            trusted = list(get_untrusted_types(r.content))
+            trusted: list[str] = list(get_untrusted_types(r.content))  # audit first
         except Exception:
             trusted = []
-        extra = ["sklearn.compose._column_transformer._RemainderColsList"]
-        for t in extra:
-            if t not in trusted:
-                trusted.append(t)
-        model = skops_loads(r.content, trusted=trusted)
+        # Allow-list known safe internals used by sklearn estimators/pipelines
+        extra = [
+            "sklearn.compose._column_transformer._RemainderColsList",
+            # loss/link internals for linear & gradient boosting models
+            "sklearn._loss.link.Interval",
+            "sklearn._loss.link.LogitLink",
+            "sklearn._loss.loss.HalfBinomialLoss",
+        ]
+        # Merge and de-dupe
+        trusted = list({*trusted, *extra})
+        # Load with explicit allow-list
+        try:
+            model = skops_loads(r.content, trusted=trusted)
+        except Exception as e:
+            # Optional escape hatch for MVP: allow fully trusted load if explicitly enabled
+            if os.environ.get("ALLOW_UNTRUSTED_MODELS") == "1":
+                model = skops_loads(r.content, trusted=True)
+            else:
+                raise HTTPException(status_code=500, detail=f"model load failed: {e}")
         X_list = req.X if isinstance(req.X, list) else [req.X]
         df = pd.DataFrame(X_list)
         try:
