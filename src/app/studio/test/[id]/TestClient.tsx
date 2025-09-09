@@ -195,7 +195,7 @@ export default function TestClient({ id }: { id: string }) {
         <div className="flex gap-2">
           <Link className="btn btn-ghost" href={`/studio/results/${id}`}>
             <ArrowBigLeft className="h-4 w-4" />
-            <span>Prev: Results</span>
+            <span>Results</span>
           </Link>
         </div>
       </div>

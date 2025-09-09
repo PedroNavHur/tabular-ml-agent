@@ -47,7 +47,7 @@ export default function TrainClient({ id }: { id: string }) {
           <div className="flex gap-2">
             <Link className="btn btn-outline" href={`/studio/preprocess/${id}`}>
               <ArrowBigLeft className="h-4 w-4" />
-              <span>Prev: Preprocess</span>
+              <span>Preprocess</span>
             </Link>
           </div>
           <div className="flex gap-2">
@@ -83,13 +83,13 @@ export default function TrainClient({ id }: { id: string }) {
             </button>
             {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
               <Link className="btn btn-outline" href={`/studio/results/${id}`}>
+                <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
-                <span>Next: View Results</span>
               </Link>
             ) : (
               <button className="btn btn-outline" disabled>
+                <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
-                <span>Next: View Results</span>
               </button>
             )}
           </div>

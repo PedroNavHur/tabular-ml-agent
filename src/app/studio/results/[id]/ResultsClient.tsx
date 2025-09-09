@@ -111,14 +111,9 @@ export default function ResultsClient({ id }: { id: string }) {
       <div className="card bg-base-200">
         <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-outline" href={`/studio/preprocess/${id}`}>
-              <ArrowBigLeft className="h-4 w-4" />
-              <span>Prev: Preprocess</span>
-            </Link>
-          </div>
-          <div className="flex gap-2">
             <Link className="btn btn-outline" href={`/studio/train/${id}`}>
-              Train
+              <ArrowBigLeft className="h-4 w-4" />
+              <span>Train</span>
             </Link>
           </div>
         </div>
