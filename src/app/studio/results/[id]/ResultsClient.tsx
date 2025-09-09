@@ -1,12 +1,11 @@
 "use client";
-import Link from "next/link";
-import { ArrowBigLeft } from "lucide-react";
-import { useMemo } from "react";
-import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
-import type { Id, Doc } from "convex/_generated/dataModel";
-import { Download } from "lucide-react";
+import type { Doc, Id } from "convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
 import { JsonEditor, type JsonData } from "json-edit-react";
+import { ArrowBigLeft, Download, FlaskConical } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
 
 export default function ResultsClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -151,7 +150,7 @@ export default function ResultsClient({ id }: { id: string }) {
                       <td className="font-medium flex items-center gap-2">
                         {m.modelName}
                         {rows[0] && rows[0]._id === m._id ? (
-                          <span className="badge badge-success badge-sm">
+                          <span className="badge badge-accent badge-sm">
                             Best
                           </span>
                         ) : null}
@@ -160,15 +159,18 @@ export default function ResultsClient({ id }: { id: string }) {
                         <MetricsCell metrics={m.metrics} />
                       </td>
                       <td className="text-right flex items-center justify-end gap-2">
-                        <Link
-                          className="btn btn-sm"
-                          href={`/studio/test/${id}?model=${String(m._id)}`}
-                        >
-                          Test
-                        </Link>
+                        <div className="tooltip" data-tip="Test Model">
+                          <Link
+                            className="btn btn-sm btn-soft btn-accent"
+                            href={`/studio/test/${id}?model=${String(m._id)}`}
+                            aria-label="Test Model"
+                          >
+                            <FlaskConical className="h-4 w-4" />
+                          </Link>
+                        </div>
                         <div className="tooltip" data-tip="Download">
                           <button
-                            className="btn btn-sm btn-outline"
+                            className="btn btn-sm btn-soft btn-outline"
                             onClick={async () => {
                               const url = await getDownloadUrl({
                                 storageId: m.storageId,
