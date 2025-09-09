@@ -82,65 +82,75 @@ export default function ResultsClient({ id }: { id: string }) {
       return (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
+            <span className="badge badge-soft badge-primary badge-xs w-12 justify-center">
+              BA
+            </span>
             <progress
-              className="progress progress-primary w-56"
+              className="progress progress-primary w-64"
               value={val}
               max={100}
             />
-            <div className="text-xs font-mono">
+            <div className="text-[0.675rem] font-mono">
               {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
-              <span className="opacity-60 ml-1">BA</span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mr-4">
             {acc != null ? (
               <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">Acc</span>
+                <span className="badge badge-soft badge-xs w-12 justify-center">
+                  Acc
+                </span>
                 <progress
-                  className="progress progress-secondary w-40"
+                  className="progress progress-secondary w-14"
                   value={Math.max(0, Math.min(1, acc)) * 100}
                   max={100}
                 />
-                <span className="text-[10px] font-mono opacity-80">
+                <span className="text-[0.6rem] font-mono opacity-80">
                   {(Math.max(0, Math.min(1, acc)) * 100).toFixed(1)}%
                 </span>
               </div>
             ) : null}
             {prec != null ? (
               <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">Pre</span>
+                <span className="badge badge-soft badge-xs w-12 justify-center">
+                  Pre
+                </span>
                 <progress
-                  className="progress progress-secondary w-40"
+                  className="progress progress-secondary w-14"
                   value={Math.max(0, Math.min(1, prec)) * 100}
                   max={100}
                 />
-                <span className="text-[10px] font-mono opacity-80">
+                <span className="text-[0.6rem] font-mono opacity-80">
                   {(Math.max(0, Math.min(1, prec)) * 100).toFixed(1)}%
                 </span>
               </div>
             ) : null}
             {rec != null ? (
               <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">Rec</span>
+                <span className="badge badge-soft badge-xs w-12 justify-center">
+                  Rec
+                </span>
                 <progress
-                  className="progress progress-secondary w-40"
+                  className="progress progress-secondary w-14"
                   value={Math.max(0, Math.min(1, rec)) * 100}
                   max={100}
                 />
-                <span className="text-[10px] font-mono opacity-80">
+                <span className="text-[0.6rem] font-mono opacity-80">
                   {(Math.max(0, Math.min(1, rec)) * 100).toFixed(1)}%
                 </span>
               </div>
             ) : null}
             {f1 != null ? (
               <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">F1</span>
+                <span className="badge badge-soft badge-xs w-12 justify-center">
+                  F1
+                </span>
                 <progress
-                  className="progress progress-secondary w-40"
+                  className="progress progress-secondary w-14"
                   value={Math.max(0, Math.min(1, f1)) * 100}
                   max={100}
                 />
-                <span className="text-[10px] font-mono opacity-80">
+                <span className="text-[0.6rem] font-mono opacity-80">
                   {(Math.max(0, Math.min(1, f1)) * 100).toFixed(1)}%
                 </span>
               </div>
@@ -212,13 +222,15 @@ export default function ResultsClient({ id }: { id: string }) {
                 ) : (
                   rows.map(m => (
                     <tr key={String(m._id)}>
-                      <td className="font-medium flex items-center gap-2">
-                        {m.modelName}
-                        {rows[0] && rows[0]._id === m._id ? (
-                          <span className="badge badge-accent badge-sm">
-                            Best
-                          </span>
-                        ) : null}
+                      <td className="font-medium">
+                        <div className="flex flex-col">
+                          <span>{m.modelName}</span>
+                          {rows[0] && rows[0]._id === m._id ? (
+                            <span className="badge badge-accent badge-sm w-fit mt-1">
+                              Recommended
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td className="text-xs opacity-90">
                         <MetricsCell metrics={m.metrics} />

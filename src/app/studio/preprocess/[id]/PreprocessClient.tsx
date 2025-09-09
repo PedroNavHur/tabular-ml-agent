@@ -155,28 +155,28 @@ export default function PreprocessClient({ id }: { id: string }) {
                     className="btn btn-secondary"
                     disabled={!headers.length || !target}
                     onClick={async () => {
-                    if (!info) return;
-                    try {
-                      await startPreprocess({
-                        datasetId: info._id as Id<"datasets">,
-                        params: {
-                          target,
-                          idColumn,
-                          taskType,
-                          missing,
-                          testSize: 0.2,
-                        },
-                      });
-                      toast.success("Preprocess started");
-                    } catch (e: unknown) {
-                      const msg =
-                        e instanceof Error
-                          ? e.message
-                          : "Failed to start preprocess";
-                      toast.error(msg);
-                    } finally {
-                      // no-op
-                    }
+                      if (!info) return;
+                      try {
+                        await startPreprocess({
+                          datasetId: info._id as Id<"datasets">,
+                          params: {
+                            target,
+                            idColumn,
+                            taskType,
+                            missing,
+                            testSize: 0.2,
+                          },
+                        });
+                        toast.success("Preprocess started");
+                      } catch (e: unknown) {
+                        const msg =
+                          e instanceof Error
+                            ? e.message
+                            : "Failed to start preprocess";
+                        toast.error(msg);
+                      } finally {
+                        // no-op
+                      }
                     }}
                   >
                     Preprocess
@@ -184,23 +184,25 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <button
                     className="btn btn-secondary"
                     disabled={!headers.length || !target || !hasCompleted}
-                    title={!hasCompleted ? "Run preprocessing first" : undefined}
-                    onClick={async () => {
-                    if (!info) return;
-                    try {
-                      await summarizeProfile({
-                        datasetId: info._id as Id<"datasets">,
-                      });
-                      toast.success("Profile summarized");
-                    } catch (e: unknown) {
-                      const msg =
-                        e instanceof Error
-                          ? e.message
-                          : "Failed to summarize profile";
-                      toast.error(msg);
-                    } finally {
-                      // no-op
+                    title={
+                      !hasCompleted ? "Run preprocessing first" : undefined
                     }
+                    onClick={async () => {
+                      if (!info) return;
+                      try {
+                        await summarizeProfile({
+                          datasetId: info._id as Id<"datasets">,
+                        });
+                        toast.success("Profile summarized");
+                      } catch (e: unknown) {
+                        const msg =
+                          e instanceof Error
+                            ? e.message
+                            : "Failed to summarize profile";
+                        toast.error(msg);
+                      } finally {
+                        // no-op
+                      }
                     }}
                   >
                     Run Profiling
@@ -362,8 +364,6 @@ export default function PreprocessClient({ id }: { id: string }) {
 
                 {/* Removed test split control; using default 20% split server-side */}
               </div>
-
-              
             </div>
           </div>
 

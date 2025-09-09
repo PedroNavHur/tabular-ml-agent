@@ -104,7 +104,9 @@ export default function TrainClient({ id }: { id: string }) {
               <div className="opacity-70">Loading...</div>
             ) : !trainedModels || trainedModels.length === 0 ? (
               <div className="opacity-70">
-                {startOp.inFlight ? "Training in progress..." : "No trained models yet."}
+                {startOp.inFlight
+                  ? "Training in progress..."
+                  : "No trained models yet."}
               </div>
             ) : (
               <>
@@ -112,10 +114,13 @@ export default function TrainClient({ id }: { id: string }) {
                   <div>
                     <div className="font-medium">Status: completed</div>
                     <div className="text-xs opacity-70">
-                      Updated: {new Date(trainedModels[0].createdAt).toLocaleString()}
+                      Updated:{" "}
+                      {new Date(trainedModels[0].createdAt).toLocaleString()}
                     </div>
                   </div>
-                  <div className="text-xs opacity-70">Models: {trainedModels.length}</div>
+                  <div className="text-xs opacity-70">
+                    Models: {trainedModels.length}
+                  </div>
                 </div>
               </>
             )}
@@ -157,11 +162,14 @@ export default function TrainClient({ id }: { id: string }) {
               <div className="opacity-70">Loading...</div>
             ) : !latestSummary ? (
               <div className="opacity-70">
-                {latestProfile ? "Profiling in progress..." : "No summary found."}
+                {latestProfile
+                  ? "Profiling in progress..."
+                  : "No summary found."}
               </div>
             ) : (
               (() => {
-                let items: Array<{ title: string; detail: string }> | null = null;
+                let items: Array<{ title: string; detail: string }> | null =
+                  null;
                 try {
                   const parsed = JSON.parse(latestSummary.summary);
                   if (Array.isArray(parsed)) items = parsed;
@@ -170,7 +178,8 @@ export default function TrainClient({ id }: { id: string }) {
                   <ul className="list-disc pl-5 space-y-1">
                     {items.map((it, idx) => (
                       <li key={idx}>
-                        <span className="font-semibold">{it.title}:</span> {it.detail}
+                        <span className="font-semibold">{it.title}:</span>{" "}
+                        {it.detail}
                       </li>
                     ))}
                   </ul>
