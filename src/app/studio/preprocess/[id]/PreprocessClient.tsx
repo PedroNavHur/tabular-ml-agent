@@ -149,6 +149,85 @@ export default function PreprocessClient({ id }: { id: string }) {
         <>
           <div className="card bg-base-200">
             <div className="card-body gap-3">
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-secondary"
+                    disabled={!headers.length || !target}
+                    onClick={async () => {
+                    if (!info) return;
+                    try {
+                      await startPreprocess({
+                        datasetId: info._id as Id<"datasets">,
+                        params: {
+                          target,
+                          idColumn,
+                          taskType,
+                          missing,
+                          testSize: 0.2,
+                        },
+                      });
+                      toast.success("Preprocess started");
+                    } catch (e: unknown) {
+                      const msg =
+                        e instanceof Error
+                          ? e.message
+                          : "Failed to start preprocess";
+                      toast.error(msg);
+                    } finally {
+                      // no-op
+                    }
+                    }}
+                  >
+                    Preprocess
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    disabled={!headers.length || !target || !hasCompleted}
+                    title={!hasCompleted ? "Run preprocessing first" : undefined}
+                    onClick={async () => {
+                    if (!info) return;
+                    try {
+                      await summarizeProfile({
+                        datasetId: info._id as Id<"datasets">,
+                      });
+                      toast.success("Profile summarized");
+                    } catch (e: unknown) {
+                      const msg =
+                        e instanceof Error
+                          ? e.message
+                          : "Failed to summarize profile";
+                      toast.error(msg);
+                    } finally {
+                      // no-op
+                    }
+                    }}
+                  >
+                    Run Profiling
+                  </button>
+                </div>
+                <div>
+                  {!headers.length || !target ? (
+                    <button className="btn btn-outline" disabled>
+                      <ArrowBigRight className="h-4 w-4" />
+                      <span>Next: Train</span>
+                    </button>
+                  ) : (
+                    <a
+                      className="btn btn-outline"
+                      href={`/studio/train/${String(datasetId)}`}
+                    >
+                      <ArrowBigRight className="h-4 w-4" />
+                      <span>Next: Train</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-base-200">
+            <div className="card-body gap-3">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium">{info.filename}</div>
@@ -191,8 +270,6 @@ export default function PreprocessClient({ id }: { id: string }) {
                   </button>
                 </div>
               </div>
-
-              {/* Controls */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="form-control w-full">
                   <div className="label">
@@ -286,76 +363,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                 {/* Removed test split control; using default 20% split server-side */}
               </div>
 
-              <div className="card-actions justify-end pt-2">
-                <button
-                  className="btn btn-secondary"
-                  disabled={!headers.length || !target}
-                  onClick={async () => {
-                    if (!info) return;
-                    try {
-                      await startPreprocess({
-                        datasetId: info._id as Id<"datasets">,
-                        params: {
-                          target,
-                          idColumn,
-                          taskType,
-                          missing,
-                          testSize: 0.2,
-                        },
-                      });
-                      toast.success("Preprocess started");
-                    } catch (e: unknown) {
-                      const msg =
-                        e instanceof Error
-                          ? e.message
-                          : "Failed to start preprocess";
-                      toast.error(msg);
-                    } finally {
-                      // no-op
-                    }
-                  }}
-                >
-                  Preprocess
-                </button>
-                <button
-                  className="btn btn-primary"
-                  disabled={!headers.length || !target || !hasCompleted}
-                  title={!hasCompleted ? "Run preprocessing first" : undefined}
-                  onClick={async () => {
-                    if (!info) return;
-                    try {
-                      await summarizeProfile({
-                        datasetId: info._id as Id<"datasets">,
-                      });
-                      toast.success("Profile summarized");
-                    } catch (e: unknown) {
-                      const msg =
-                        e instanceof Error
-                          ? e.message
-                          : "Failed to summarize profile";
-                      toast.error(msg);
-                    } finally {
-                      // no-op
-                    }
-                  }}
-                >
-                  Run Profiling
-                </button>
-                {!headers.length || !target ? (
-                  <button className="btn btn-outline" disabled>
-                    <ArrowBigRight className="h-4 w-4" />
-                    <span>Next: Train</span>
-                  </button>
-                ) : (
-                  <a
-                    className="btn btn-outline"
-                    href={`/studio/train/${String(datasetId)}`}
-                  >
-                    <ArrowBigRight className="h-4 w-4" />
-                    <span>Next: Train</span>
-                  </a>
-                )}
-              </div>
+              
             </div>
           </div>
 
