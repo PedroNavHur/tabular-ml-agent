@@ -26,7 +26,10 @@ export default function TestClient({ id }: { id: string }) {
   const predict = useAction(predictRef);
 
   const cols = useMemo(() => profile?.report?.columns ?? [], [profile]);
-  const describe = useMemo(() => (profile?.report?.describe ?? {}) as Record<string, Record<string, unknown>>, [profile]);
+  const describe = useMemo(
+    () => (profile?.report?.describe ?? {}) as Record<string, Record<string, unknown>>,
+    [profile]
+  );
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [result, setResult] = useState<unknown>(null);
@@ -99,6 +102,47 @@ export default function TestClient({ id }: { id: string }) {
     () => (Array.isArray(cols) ? cols.filter((c: string) => c !== profile?.report?.target) : []),
     [cols, profile]
   );
+
+  const latestCompletedRun = useMemo(() => {
+    if (!Array.isArray(runs)) return null;
+    return runs.find((r) => r.status === "completed" && r.summary);
+  }, [runs]);
+
+  function asRecord(u: unknown): Record<string, unknown> {
+    return u && typeof u === "object" ? (u as Record<string, unknown>) : {};
+  }
+
+  function asString(u: unknown): string | undefined {
+    return typeof u === "string" ? u : undefined;
+  }
+
+  function asNumber(u: unknown): number | undefined {
+    return typeof u === "number" && Number.isFinite(u) ? u : undefined;
+  }
+
+  const dtypeByCol = useMemo(() => {
+    const summaryRec = asRecord(latestCompletedRun?.summary as unknown);
+    const dtypesRec = asRecord(summaryRec["dtypes"]);
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(dtypesRec)) {
+      const sv = asString(v);
+      if (sv !== undefined) out[k] = sv;
+    }
+    return out;
+  }, [latestCompletedRun]);
+
+  function isNumericColumn(c: string): boolean {
+    const dtype = dtypeByCol[c]?.toLowerCase?.() ?? "";
+    if (dtype.includes("int") || dtype.includes("float") || dtype.includes("double")) return true;
+    if (dtype && (dtype.includes("object") || dtype.includes("string") || dtype.includes("category") || dtype.includes("bool"))) return false;
+    const stats = asRecord(describe?.[c]);
+    const top = stats["top"];
+    const topIsString = typeof top === "string" && top.length > 0;
+    const numericKeys = ["mean", "std", "25%", "50%", "75%", "min", "max"] as const;
+    const hasNumericStat = numericKeys.some((k) => typeof stats[k] === "number");
+    // Treat as numeric only if we see numeric stats and it's not clearly categorical (top as string)
+    return hasNumericStat && !topIsString;
+  }
 
   useEffect(() => {
     if (modelParam) setSelectedModel(modelParam);
@@ -182,12 +226,10 @@ export default function TestClient({ id }: { id: string }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {featureCols.map((c: string) => {
-              const stats = describe?.[c] ?? {};
-              const minRaw = stats && typeof stats === "object" ? (stats as Record<string, unknown>)["min"] : undefined;
-              const maxRaw = stats && typeof stats === "object" ? (stats as Record<string, unknown>)["max"] : undefined;
-              const min = typeof minRaw === "number" ? minRaw : undefined;
-              const max = typeof maxRaw === "number" ? maxRaw : undefined;
-              const isNumeric = typeof min === "number" || typeof max === "number";
+              const stats = asRecord(describe?.[c]);
+              const isNumeric = isNumericColumn(c);
+              const min = isNumeric ? asNumber(stats["min"]) : undefined;
+              const max = isNumeric ? asNumber(stats["max"]) : undefined;
               return (
                 <label key={c} className="form-control">
                   <div className="label">

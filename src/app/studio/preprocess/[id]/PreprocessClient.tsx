@@ -9,16 +9,35 @@ import { useMemo, useState } from "react";
 
 type TaskType = "auto" | "classification" | "regression";
 
+function firstNLines(text: string, n: number): string[] {
+  const out: string[] = [];
+  let start = 0;
+  while (out.length < n && start <= text.length) {
+    const idx = text.indexOf("\n", start);
+    if (idx === -1) {
+      const line = text.slice(start).replace(/\r$/, "");
+      if (line.length > 0) out.push(line);
+      break;
+    }
+    const line = text.slice(start, idx).replace(/\r$/, "");
+    if (line.length > 0) out.push(line);
+    start = idx + 1;
+  }
+  return out;
+}
+
 function parseCsvPreview(
   text: string,
-  maxRows = 50
+  maxRows = 20
 ): { headers: string[]; rows: string[][] } {
-  const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+  // Only read the header + up to maxRows lines to keep fast
+  const lines = firstNLines(text, maxRows + 1);
   if (lines.length === 0) return { headers: [], rows: [] };
   const headers = splitCsvLine(lines[0]);
   const rows: string[][] = [];
-  for (let i = 1; i < Math.min(lines.length, maxRows + 1); i++) {
-    rows.push(splitCsvLine(lines[i]));
+  const limit = Math.min(lines.length - 1, maxRows);
+  for (let i = 0; i < limit; i++) {
+    rows.push(splitCsvLine(lines[i + 1]));
   }
   return { headers, rows };
 }
@@ -67,6 +86,7 @@ export default function PreprocessClient({ id }: { id: string }) {
 
   const info = useMemo(() => dataset, [dataset]);
   const [loading, setLoading] = useState(false);
+  const [previewRows, setPreviewRows] = useState<number>(20);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [target, setTarget] = useState<string | null>(null);
@@ -93,7 +113,7 @@ export default function PreprocessClient({ id }: { id: string }) {
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
 
-  const loadPreview = async () => {
+  const loadPreview = async (n?: number) => {
     if (!info) return;
     setLoading(true);
     try {
@@ -101,7 +121,7 @@ export default function PreprocessClient({ id }: { id: string }) {
       if (!url) throw new Error("No download URL");
       const res = await fetch(url);
       const text = await res.text();
-      const { headers, rows } = parseCsvPreview(text);
+      const { headers, rows } = parseCsvPreview(text, n ?? previewRows);
       setHeaders(headers);
       setRows(rows);
       if (headers.length > 0 && !target)
@@ -129,10 +149,27 @@ export default function PreprocessClient({ id }: { id: string }) {
                   <div className="font-medium">{info.filename}</div>
                   <div className="text-xs opacity-70">{info.contentType}</div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                  <span className="text-xs opacity-70">Rows</span>
+                  <div className="join">
+                    {[10, 20, 50, 100].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`btn btn-sm join-item ${previewRows === n ? "btn-active" : ""}`}
+                        onClick={() => {
+                          setPreviewRows(n);
+                          if (headers.length && !loading) void loadPreview(n);
+                        }}
+                        disabled={loading}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                   <button
                     className="btn btn-sm"
-                    onClick={loadPreview}
+                    onClick={() => loadPreview()}
                     disabled={loading}
                   >
                     {loading ? "Loading..." : "Load preview"}
