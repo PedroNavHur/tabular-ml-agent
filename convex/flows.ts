@@ -125,6 +125,9 @@ export const summarizeProfile: unknown = action({
 export const generateRunCfg: unknown = action({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
+    const existing = await ctx.runQuery(api.datasets.getLatestRunCfg, { datasetId });
+    if (existing) return { runCfgId: existing._id, cfg: existing.cfg };
+
     const [profile, summary] = await Promise.all([
       ctx.runQuery(api.datasets.getLatestProfile, { datasetId }),
       ctx.runQuery(api.datasets.getLatestProfileSummary, { datasetId }),

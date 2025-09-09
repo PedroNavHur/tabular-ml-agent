@@ -13,6 +13,7 @@ export default function SuggestClient({ id }: { id: string }) {
     | Doc<"profile_summaries">
     | null
     | undefined;
+  const latestProfile = useQuery(api.datasets.getLatestProfile, { datasetId });
   const latestRunCfg = useQuery(api.datasets.getLatestRunCfg, { datasetId }) as
     | Doc<"run_cfgs">
     | null
@@ -67,7 +68,7 @@ export default function SuggestClient({ id }: { id: string }) {
             )}
             <button
               className="btn btn-primary"
-              disabled={!latestRunCfg}
+              disabled={!latestRunCfg || !latestSummary}
               onClick={async () => {
                 try {
                   toast("Starting training...");
@@ -92,7 +93,9 @@ export default function SuggestClient({ id }: { id: string }) {
             {latestSummary === undefined ? (
               <div className="opacity-70">Loading...</div>
             ) : !latestSummary ? (
-              <div className="opacity-70">No summary found.</div>
+              <div className="opacity-70">
+                {latestProfile ? "Profiling in progress..." : "No summary found."}
+              </div>
             ) : (() => {
               let items: Array<{ title: string; detail: string }> | null = null;
               try {
