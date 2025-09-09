@@ -289,8 +289,12 @@ def training_app():
         from sklearn.compose import ColumnTransformer
         from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler, RobustScaler
         from sklearn.pipeline import Pipeline
-        from sklearn.model_selection import cross_val_score
-        from sklearn.metrics import make_scorer, balanced_accuracy_score, mean_absolute_error
+        from sklearn.model_selection import cross_val_score, cross_validate
+        from sklearn.metrics import (
+            make_scorer,
+            balanced_accuracy_score,
+            mean_absolute_error,
+        )
         from skops.io import dumps as skops_dumps
 
         r = requests.get(req.csvUrl)
@@ -367,9 +371,45 @@ def training_app():
                 pass
             model = ModelCls(**params)
             pipe = Pipeline(steps=[("prep", preprocessor), ("model", model)])
-            scores = cross_val_score(pipe, X, y, cv=cv_cfg.get("cv_folds", 5), scoring=scorer)
-            mean_score = float(scores.mean())
-            std_score = float(scores.std())
+            cv_folds = int(cv_cfg.get("cv_folds", 5))
+            if task_type == "regression":
+                scores = cross_val_score(
+                    pipe, X, y, cv=cv_folds, scoring=scorer
+                )
+                mean_score = float(scores.mean())
+                std_score = float(scores.std())
+                extra_metrics: dict[str, float] = {}
+            else:
+                # Compute multiple classification metrics via cross_validate
+                scoring = {
+                    "balanced_accuracy": "balanced_accuracy",
+                    "accuracy": "accuracy",
+                    "precision": "precision_macro",
+                    "recall": "recall_macro",
+                    "f1": "f1_macro",
+                }
+                cvres = cross_validate(
+                    pipe,
+                    X,
+                    y,
+                    cv=cv_folds,
+                    scoring=scoring,
+                    n_jobs=None,
+                    return_estimator=False,
+                )
+                ba = cvres.get("test_balanced_accuracy")
+                mean_score = float((ba.mean() if ba is not None else 0.0))
+                std_score = float((ba.std() if ba is not None else 0.0))
+                extra_metrics = {
+                    "accuracy": float(cvres["test_accuracy"].mean()),
+                    "accuracy_std": float(cvres["test_accuracy"].std()),
+                    "precision": float(cvres["test_precision"].mean()),
+                    "precision_std": float(cvres["test_precision"].std()),
+                    "recall": float(cvres["test_recall"].mean()),
+                    "recall_std": float(cvres["test_recall"].std()),
+                    "f1": float(cvres["test_f1"].mean()),
+                    "f1_std": float(cvres["test_f1"].std()),
+                }
             pipe.fit(X, y)
             try:
                 blob = skops_dumps(pipe)
@@ -383,6 +423,9 @@ def training_app():
             ur.raise_for_status()
             storage_id = ur.json().get("storageId")
             metrics = {metric_name: mean_score, f"{metric_name}_std": std_score}
+            # Include additional classification metrics if present
+            if task_type != "regression":
+                metrics.update(extra_metrics)
             if req.callbacks.saveModel:
                 _http_post(req.callbacks.saveModel, {
                     "datasetId": req.datasetId,

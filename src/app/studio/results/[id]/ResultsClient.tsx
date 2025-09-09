@@ -65,21 +65,86 @@ export default function ResultsClient({ id }: { id: string }) {
     const hasBAStd = typeof m["balanced_accuracy_std"] === "number";
     const hasMAE = typeof m["mae"] === "number";
     const hasMAEStd = typeof m["mae_std"] === "number";
+    const n = (k: string): number | null =>
+      typeof m[k] === "number" && Number.isFinite(m[k] as number)
+        ? (m[k] as number)
+        : null;
     if (hasBA) {
       const val =
         Math.max(0, Math.min(1, Number(m["balanced_accuracy"]))) * 100;
       const std = hasBAStd
         ? Math.abs(Number(m["balanced_accuracy_std"])) * 100
         : undefined;
+      const acc = n("accuracy");
+      const prec = n("precision");
+      const rec = n("recall");
+      const f1 = n("f1");
       return (
-        <div className="flex items-center gap-3">
-          <progress
-            className="progress progress-primary w-56"
-            value={val}
-            max={100}
-          />
-          <div className="text-xs font-mono">
-            {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <progress
+              className="progress progress-primary w-56"
+              value={val}
+              max={100}
+            />
+            <div className="text-xs font-mono">
+              {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
+              <span className="opacity-60 ml-1">BA</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {acc != null ? (
+              <div className="flex items-center gap-2">
+                <span className="badge badge-soft badge-xs w-12 justify-center">Acc</span>
+                <progress
+                  className="progress progress-secondary w-40"
+                  value={Math.max(0, Math.min(1, acc)) * 100}
+                  max={100}
+                />
+                <span className="text-[10px] font-mono opacity-80">
+                  {(Math.max(0, Math.min(1, acc)) * 100).toFixed(1)}%
+                </span>
+              </div>
+            ) : null}
+            {prec != null ? (
+              <div className="flex items-center gap-2">
+                <span className="badge badge-soft badge-xs w-12 justify-center">Pre</span>
+                <progress
+                  className="progress progress-secondary w-40"
+                  value={Math.max(0, Math.min(1, prec)) * 100}
+                  max={100}
+                />
+                <span className="text-[10px] font-mono opacity-80">
+                  {(Math.max(0, Math.min(1, prec)) * 100).toFixed(1)}%
+                </span>
+              </div>
+            ) : null}
+            {rec != null ? (
+              <div className="flex items-center gap-2">
+                <span className="badge badge-soft badge-xs w-12 justify-center">Rec</span>
+                <progress
+                  className="progress progress-secondary w-40"
+                  value={Math.max(0, Math.min(1, rec)) * 100}
+                  max={100}
+                />
+                <span className="text-[10px] font-mono opacity-80">
+                  {(Math.max(0, Math.min(1, rec)) * 100).toFixed(1)}%
+                </span>
+              </div>
+            ) : null}
+            {f1 != null ? (
+              <div className="flex items-center gap-2">
+                <span className="badge badge-soft badge-xs w-12 justify-center">F1</span>
+                <progress
+                  className="progress progress-secondary w-40"
+                  value={Math.max(0, Math.min(1, f1)) * 100}
+                  max={100}
+                />
+                <span className="text-[10px] font-mono opacity-80">
+                  {(Math.max(0, Math.min(1, f1)) * 100).toFixed(1)}%
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
       );
