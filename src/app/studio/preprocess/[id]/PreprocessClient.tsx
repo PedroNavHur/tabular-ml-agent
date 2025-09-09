@@ -6,6 +6,7 @@ import type { FunctionReference } from "convex/server";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
+import { useToastOp } from "@/hooks/useToastOp";
 
 type TaskType = "auto" | "classification" | "regression";
 
@@ -85,7 +86,8 @@ export default function PreprocessClient({ id }: { id: string }) {
   const summarizeProfile = useAction(summarizeProfileRef);
 
   const info = useMemo(() => dataset, [dataset]);
-  const [loading, setLoading] = useState(false);
+  const previewOp = useToastOp();
+  const loading = previewOp.inFlight;
   const [previewRows, setPreviewRows] = useState<number>(20);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
@@ -114,10 +116,9 @@ export default function PreprocessClient({ id }: { id: string }) {
     Array.isArray(runs) && runs.some(r => r.status === "completed");
 
   const loadPreview = async (n?: number) => {
-    if (!info) return;
-    setLoading(true);
-    try {
-      const op = (async () => {
+    if (!info || loading) return;
+    await previewOp.run(
+      async () => {
         const url = await getDownloadUrl({ storageId: info.storageId });
         if (!url) throw new Error("No download URL");
         const res = await fetch(url);
@@ -127,16 +128,13 @@ export default function PreprocessClient({ id }: { id: string }) {
         setRows(rows);
         if (headers.length > 0 && !target)
           setTarget(headers[headers.length - 1] ?? null);
-      })();
-      toast.promise(op, {
+      },
+      {
         loading: "Loading preview...",
         success: "Preview loaded",
         error: "Failed to load preview",
-      });
-      await op;
-    } finally {
-      setLoading(false);
-    }
+      }
+    );
   };
 
   return (
@@ -158,7 +156,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                 <div className="flex gap-2 items-center">
                   <span className="text-xs opacity-70">Rows</span>
                   <div className="join">
-                    {[10, 20, 50, 100].map((n) => (
+                    {[10, 20, 50, 100].map(n => (
                       <button
                         key={n}
                         type="button"
@@ -357,12 +355,15 @@ export default function PreprocessClient({ id }: { id: string }) {
                 >
                   Run Profiling
                 </button>
-                {(!headers.length || !target) ? (
+                {!headers.length || !target ? (
                   <button className="btn btn-outline" disabled>
                     Next: Train
                   </button>
                 ) : (
-                  <a className="btn btn-outline" href={`/studio/train/${String(datasetId)}`}>
+                  <a
+                    className="btn btn-outline"
+                    href={`/studio/train/${String(datasetId)}`}
+                  >
                     Next: Train
                   </a>
                 )}

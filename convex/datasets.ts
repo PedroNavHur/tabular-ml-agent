@@ -203,7 +203,6 @@ export const getLatestProfileSummary = query({
   },
 });
 
-
 export const saveRunCfg = mutation({
   args: {
     datasetId: v.id("datasets"),
@@ -228,13 +227,12 @@ export const getLatestRunCfg = query({
   handler: async (ctx, { datasetId }) => {
     const [latest] = await ctx.db
       .query("run_cfgs")
-      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .withIndex("by_dataset_createdAt", q => q.eq("datasetId", datasetId))
       .order("desc")
       .take(1);
     return latest ?? null;
   },
 });
-
 
 export const saveTrainedModel = mutation({
   args: {
@@ -244,7 +242,10 @@ export const saveTrainedModel = mutation({
     storageId: v.id("_storage"),
     metrics: v.any(),
   },
-  handler: async (ctx, { datasetId, runCfgId, modelName, storageId, metrics }) => {
+  handler: async (
+    ctx,
+    { datasetId, runCfgId, modelName, storageId, metrics }
+  ) => {
     const id = await ctx.db.insert("trained_models", {
       datasetId,
       runCfgId,
@@ -257,13 +258,12 @@ export const saveTrainedModel = mutation({
   },
 });
 
-
 export const listTrainedModels = query({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
     const items = await ctx.db
       .query("trained_models")
-      .withIndex("by_dataset_createdAt", (q) => q.eq("datasetId", datasetId))
+      .withIndex("by_dataset_createdAt", q => q.eq("datasetId", datasetId))
       .order("desc")
       .collect();
     return items;
@@ -276,5 +276,3 @@ export const getTrainedModel = query({
     return await ctx.db.get(id);
   },
 });
-
-

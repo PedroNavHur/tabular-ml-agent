@@ -58,7 +58,8 @@ export default defineSchema({
     summaryId: v.optional(v.id("profile_summaries")),
     cfg: v.any(),
     createdAt: v.number(),
-  }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),  trained_models: defineTable({
+  }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
+  trained_models: defineTable({
     datasetId: v.id("datasets"),
     runCfgId: v.optional(v.id("run_cfgs")),
     modelName: v.string(),
@@ -66,5 +67,4 @@ export default defineSchema({
     metrics: v.any(),
     createdAt: v.number(),
   }).index("by_dataset_createdAt", ["datasetId", "createdAt"]),
-
 });

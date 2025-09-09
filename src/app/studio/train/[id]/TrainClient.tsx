@@ -1,27 +1,25 @@
 "use client";
-import { useMemo, useState } from "react";
-import { useAction, useQuery } from "convex/react";
-import Link from "next/link";
+import { useToastOp } from "@/hooks/useToastOp";
 import { api } from "convex/_generated/api";
-import type { Id, Doc } from "convex/_generated/dataModel";
+import type { Doc, Id } from "convex/_generated/dataModel";
+import { useAction, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
-import { toast } from "sonner";
+import Link from "next/link";
+import { useMemo } from "react";
 
 export default function TrainClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
-  const latestSummary = useQuery(api.datasets.getLatestProfileSummary, { datasetId }) as
-    | Doc<"profile_summaries">
-    | null
-    | undefined;
+  const latestSummary = useQuery(api.datasets.getLatestProfileSummary, {
+    datasetId,
+  }) as Doc<"profile_summaries"> | null | undefined;
   const latestProfile = useQuery(api.datasets.getLatestProfile, { datasetId });
   const latestRunCfg = useQuery(api.datasets.getLatestRunCfg, { datasetId }) as
     | Doc<"run_cfgs">
     | null
     | undefined;
-  const trainedModels = useQuery(api.datasets.listTrainedModels, { datasetId }) as
-    | Doc<"trained_models">[]
-    | null
-    | undefined;
+  const trainedModels = useQuery(api.datasets.listTrainedModels, {
+    datasetId,
+  }) as Doc<"trained_models">[] | null | undefined;
 
   const generateRunCfgRef = (
     api as unknown as { flows: { generateRunCfg: FunctionReference<"action"> } }
@@ -35,8 +33,8 @@ export default function TrainClient({ id }: { id: string }) {
   // Plan generation is now manual via the button below.
 
   const plan = useMemo(() => latestRunCfg?.cfg, [latestRunCfg]);
-  const [generating, setGenerating] = useState(false);
-  const [starting, setStarting] = useState(false);
+  const genOp = useToastOp();
+  const startOp = useToastOp();
 
   return (
     <div className="w-full max-w-6xl space-y-4">
@@ -60,44 +58,30 @@ export default function TrainClient({ id }: { id: string }) {
             )}
             <button
               className="btn"
-              disabled={!latestSummary || !!latestRunCfg || generating}
+              disabled={!latestSummary || !!latestRunCfg || genOp.inFlight}
               onClick={async () => {
                 if (!latestSummary) return;
                 if (latestRunCfg) return;
-                if (generating) return;
-                setGenerating(true);
-                try {
-                  const op = generateRunCfg({ datasetId });
-                  toast.promise(op, {
-                    loading: "Generating training plan...",
-                    success: "Training plan generated",
-                    error: "Failed to generate plan",
-                  });
-                  await op;
-                } finally {
-                  setGenerating(false);
-                }
+                if (genOp.inFlight) return;
+                await genOp.run(() => generateRunCfg({ datasetId }), {
+                  loading: "Generating training plan...",
+                  success: "Training plan generated",
+                  error: "Failed to generate plan",
+                });
               }}
             >
               Generate Run Config
             </button>
             <button
               className="btn btn-primary"
-              disabled={!latestRunCfg || !latestSummary || starting}
+              disabled={!latestRunCfg || !latestSummary || startOp.inFlight}
               onClick={async () => {
-                if (starting) return;
-                setStarting(true);
-                try {
-                  const op = startTraining({ datasetId });
-                  toast.promise(op, {
-                    loading: "Starting training...",
-                    success: "Training started",
-                    error: "Failed to start training",
-                  });
-                  await op;
-                } finally {
-                  setStarting(false);
-                }
+                if (startOp.inFlight) return;
+                await startOp.run(() => startTraining({ datasetId }), {
+                  loading: "Starting training...",
+                  success: "Training started",
+                  error: "Failed to start training",
+                });
               }}
             >
               Train Models
@@ -105,7 +89,6 @@ export default function TrainClient({ id }: { id: string }) {
           </div>
         </div>
       </div>
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card bg-base-200">
@@ -115,28 +98,34 @@ export default function TrainClient({ id }: { id: string }) {
               <div className="opacity-70">Loading...</div>
             ) : !latestSummary ? (
               <div className="opacity-70">
-                {latestProfile ? "Profiling in progress..." : "No summary found."}
+                {latestProfile
+                  ? "Profiling in progress..."
+                  : "No summary found."}
               </div>
-            ) : (() => {
-              let items: Array<{ title: string; detail: string }> | null = null;
-              try {
-                const parsed = JSON.parse(latestSummary.summary);
-                if (Array.isArray(parsed)) items = parsed;
-              } catch {}
-              return items ? (
-                <ul className="list-disc pl-5 space-y-1">
-                  {items.map((it, idx) => (
-                    <li key={idx}>
-                      <span className="font-semibold">{it.title}:</span> {it.detail}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="prose prose-sm max-w-none whitespace-pre-wrap opacity-90">
-                  {latestSummary.summary}
-                </div>
-              );
-            })()}
+            ) : (
+              (() => {
+                let items: Array<{ title: string; detail: string }> | null =
+                  null;
+                try {
+                  const parsed = JSON.parse(latestSummary.summary);
+                  if (Array.isArray(parsed)) items = parsed;
+                } catch {}
+                return items ? (
+                  <ul className="list-disc pl-5 space-y-1">
+                    {items.map((it, idx) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{it.title}:</span>{" "}
+                        {it.detail}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="prose prose-sm max-w-none whitespace-pre-wrap opacity-90">
+                    {latestSummary.summary}
+                  </div>
+                );
+              })()
+            )}
           </div>
         </div>
 
@@ -149,7 +138,9 @@ export default function TrainClient({ id }: { id: string }) {
               <div className="opacity-70">No plan yet.</div>
             ) : (
               <pre className="text-xs whitespace-pre-wrap opacity-90 max-h-80 overflow-auto">
-                {typeof plan === "string" ? plan : JSON.stringify(plan as unknown, null, 2)}
+                {typeof plan === "string"
+                  ? plan
+                  : JSON.stringify(plan as unknown, null, 2)}
               </pre>
             )}
           </div>

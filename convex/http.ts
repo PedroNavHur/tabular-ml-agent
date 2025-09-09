@@ -134,8 +134,11 @@ http.route({
     const runs = (await ctx.runQuery(api.datasets.listPreprocessRuns, {
       datasetId: datasetId as Id<"datasets">,
     })) as Doc<"preprocess_runs">[];
-    const completed = runs.find((r) => r.status === "completed" && r.processedStorageId !== undefined);
-    if (!completed?.processedStorageId) return new Response("not found", { status: 404 });
+    const completed = runs.find(
+      r => r.status === "completed" && r.processedStorageId !== undefined
+    );
+    if (!completed?.processedStorageId)
+      return new Response("not found", { status: 404 });
     const url = await ctx.storage.getUrl(completed.processedStorageId);
     return new Response(JSON.stringify({ url }), { status: 200 });
   }),
@@ -184,8 +187,6 @@ http.route({
     return new Response(JSON.stringify({ id }), { status: 200 });
   }),
 });
-
-
 
 // Download URL for a trained model by id
 http.route({

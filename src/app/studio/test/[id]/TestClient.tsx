@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { toast } from "sonner";
+// toast handled via useToastOp
 import { api } from "convex/_generated/api";
+import { useToastOp } from "@/hooks/useToastOp";
 import type { Id, Doc } from "convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
 
@@ -27,47 +28,52 @@ export default function TestClient({ id }: { id: string }) {
 
   const cols = useMemo(() => profile?.report?.columns ?? [], [profile]);
   const describe = useMemo(
-    () => (profile?.report?.describe ?? {}) as Record<string, Record<string, unknown>>,
+    () =>
+      (profile?.report?.describe ?? {}) as Record<
+        string,
+        Record<string, unknown>
+      >,
     [profile]
   );
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [result, setResult] = useState<unknown>(null);
-  const [predicting, setPredicting] = useState(false);
   const [samples, setSamples] = useState<Record<string, string>[]>([]);
-  const [samplesLoading, setSamplesLoading] = useState(false);
+  const samplesOp = useToastOp();
+  const predictOp = useToastOp();
   const [sampleIndex, setSampleIndex] = useState<number | "">("");
 
   async function loadSamples() {
-    if (samplesLoading) return;
-    setSamplesLoading(true);
-    try {
-      const op = (async () => {
+    if (samplesOp.inFlight) return;
+    await samplesOp.run(
+      async () => {
         const latestCompleted = Array.isArray(runs)
-          ? runs.find((r) => r.status === "completed" && r.processedStorageId)
+          ? runs.find(r => r.status === "completed" && r.processedStorageId)
           : undefined;
         if (!latestCompleted?.processedStorageId) {
           throw new Error("No processed data found");
         }
-        const url = await getDownloadUrl({ storageId: latestCompleted.processedStorageId });
+        const url = await getDownloadUrl({
+          storageId: latestCompleted.processedStorageId,
+        });
         if (!url) throw new Error("No URL");
         const res = await fetch(url);
         const text = await res.text();
         const parsed = parseCsv(text, 50);
         setSamples(parsed.rows);
-      })();
-      toast.promise(op, {
+      },
+      {
         loading: "Loading samples...",
         success: "Samples loaded",
-        error: (e) => (e instanceof Error ? e.message : "Failed to load samples"),
-      });
-      await op;
-    } finally {
-      setSamplesLoading(false);
-    }
+        error: e => (e instanceof Error ? e.message : "Failed to load samples"),
+      }
+    );
   }
 
-  function parseCsv(text: string, maxRows = 50): { headers: string[]; rows: Record<string, string>[] } {
+  function parseCsv(
+    text: string,
+    maxRows = 50
+  ): { headers: string[]; rows: Record<string, string>[] } {
     const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
     if (lines.length === 0) return { headers: [], rows: [] };
     const headers = splitCsvLine(lines[0]);
@@ -108,13 +114,16 @@ export default function TestClient({ id }: { id: string }) {
   }
 
   const featureCols = useMemo(
-    () => (Array.isArray(cols) ? cols.filter((c: string) => c !== profile?.report?.target) : []),
+    () =>
+      Array.isArray(cols)
+        ? cols.filter((c: string) => c !== profile?.report?.target)
+        : [],
     [cols, profile]
   );
 
   const latestCompletedRun = useMemo(() => {
     if (!Array.isArray(runs)) return null;
-    return runs.find((r) => r.status === "completed" && r.summary);
+    return runs.find(r => r.status === "completed" && r.summary);
   }, [runs]);
 
   function asRecord(u: unknown): Record<string, unknown> {
@@ -142,13 +151,33 @@ export default function TestClient({ id }: { id: string }) {
 
   function isNumericColumn(c: string): boolean {
     const dtype = dtypeByCol[c]?.toLowerCase?.() ?? "";
-    if (dtype.includes("int") || dtype.includes("float") || dtype.includes("double")) return true;
-    if (dtype && (dtype.includes("object") || dtype.includes("string") || dtype.includes("category") || dtype.includes("bool"))) return false;
+    if (
+      dtype.includes("int") ||
+      dtype.includes("float") ||
+      dtype.includes("double")
+    )
+      return true;
+    if (
+      dtype &&
+      (dtype.includes("object") ||
+        dtype.includes("string") ||
+        dtype.includes("category") ||
+        dtype.includes("bool"))
+    )
+      return false;
     const stats = asRecord(describe?.[c]);
     const top = stats["top"];
     const topIsString = typeof top === "string" && top.length > 0;
-    const numericKeys = ["mean", "std", "25%", "50%", "75%", "min", "max"] as const;
-    const hasNumericStat = numericKeys.some((k) => typeof stats[k] === "number");
+    const numericKeys = [
+      "mean",
+      "std",
+      "25%",
+      "50%",
+      "75%",
+      "min",
+      "max",
+    ] as const;
+    const hasNumericStat = numericKeys.some(k => typeof stats[k] === "number");
     // Treat as numeric only if we see numeric stats and it's not clearly categorical (top as string)
     return hasNumericStat && !topIsString;
   }
@@ -168,8 +197,6 @@ export default function TestClient({ id }: { id: string }) {
         </div>
       </div>
 
-      
-
       <div className="card bg-base-200">
         <div className="card-body gap-3">
           <div className="flex flex-col md:flex-row gap-3 md:items-end">
@@ -180,13 +207,15 @@ export default function TestClient({ id }: { id: string }) {
               <select
                 className="select select-bordered"
                 value={selectedModel ?? ""}
-                onChange={(e) => setSelectedModel(e.target.value || null)}
+                onChange={e => setSelectedModel(e.target.value || null)}
               >
                 <option value="" disabled>
-                  {Array.isArray(models) && models.length ? "Select" : "No models trained yet"}
+                  {Array.isArray(models) && models.length
+                    ? "Select"
+                    : "No models trained yet"}
                 </option>
                 {Array.isArray(models)
-                  ? models.map((m) => (
+                  ? models.map(m => (
                       <option key={String(m._id)} value={String(m._id)}>
                         {m.modelName}
                       </option>
@@ -196,7 +225,12 @@ export default function TestClient({ id }: { id: string }) {
             </label>
 
             <div className="flex gap-2 items-end">
-              <button className="btn btn-outline" onClick={loadSamples} type="button" disabled={samplesLoading}>
+              <button
+                className="btn btn-outline"
+                onClick={loadSamples}
+                type="button"
+                disabled={samplesOp.inFlight}
+              >
                 Load samples
               </button>
               <label className="form-control w-full md:max-w-xs">
@@ -206,7 +240,7 @@ export default function TestClient({ id }: { id: string }) {
                 <select
                   className="select select-bordered"
                   value={sampleIndex === "" ? "" : String(sampleIndex)}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value;
                     setSampleIndex(v === "" ? "" : Number(v));
                     if (v !== "") {
@@ -253,7 +287,9 @@ export default function TestClient({ id }: { id: string }) {
                     value={form[c] ?? ""}
                     {...(isNumeric && min !== undefined ? { min } : {})}
                     {...(isNumeric && max !== undefined ? { max } : {})}
-                    onChange={(e) => setForm((f) => ({ ...f, [c]: e.target.value }))}
+                    onChange={e =>
+                      setForm(f => ({ ...f, [c]: e.target.value }))
+                    }
                   />
                 </label>
               );
@@ -263,25 +299,27 @@ export default function TestClient({ id }: { id: string }) {
           <div className="card-actions justify-end">
             <button
               className="btn btn-primary"
-              disabled={!selectedModel || !Array.isArray(models) || models.length === 0 || predicting}
+              disabled={
+                !selectedModel ||
+                !Array.isArray(models) ||
+                models.length === 0 ||
+                predictOp.inFlight
+              }
               onClick={async () => {
                 if (!selectedModel) return;
-                setPredicting(true);
-                try {
-                  const op = (async () => {
-                    const modelId = selectedModel as unknown as Id<"trained_models">;
+                await predictOp.run(
+                  async () => {
+                    const modelId =
+                      selectedModel as unknown as Id<"trained_models">;
                     const res = await predict({ modelId, input: form });
                     setResult(res);
-                  })();
-                  toast.promise(op, {
+                  },
+                  {
                     loading: "Predicting...",
                     success: "Done",
                     error: "Failed to predict",
-                  });
-                  await op;
-                } finally {
-                  setPredicting(false);
-                }
+                  }
+                );
               }}
             >
               Predict

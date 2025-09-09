@@ -11,7 +11,6 @@ JSON profile:
 ${JSON.stringify(report)}`;
 }
 
-
 export function runCfgPrompt(report: unknown, summary: string): string {
   const header = `You are an ML engineer. Generate a JSON run configuration for training classical scikit-learn models on a tabular dataset.
 - Use ONLY classical sklearn models (e.g., LogisticRegression, RandomForestClassifier, GradientBoostingClassifier, SVC, LinearRegression, RandomForestRegressor, GradientBoostingRegressor, SVR, etc.).

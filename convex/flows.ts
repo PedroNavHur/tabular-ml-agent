@@ -121,11 +121,12 @@ export const summarizeProfile: unknown = action({
   },
 });
 
-
 export const generateRunCfg: unknown = action({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
-    const existing = await ctx.runQuery(api.datasets.getLatestRunCfg, { datasetId });
+    const existing = await ctx.runQuery(api.datasets.getLatestRunCfg, {
+      datasetId,
+    });
     if (existing) return { runCfgId: existing._id, cfg: existing.cfg };
 
     const [profile, summary] = await Promise.all([
@@ -136,7 +137,8 @@ export const generateRunCfg: unknown = action({
 
     const prompt = runCfgPrompt(profile.report, summary?.summary ?? "");
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY in Convex env");
+    if (!OPENAI_API_KEY)
+      throw new Error("Missing OPENAI_API_KEY in Convex env");
 
     const resp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -175,32 +177,50 @@ export const generateRunCfg: unknown = action({
   },
 });
 
-
 export const startTraining: unknown = action({
   args: { datasetId: v.id("datasets") },
   handler: async (ctx, { datasetId }) => {
-    const plan = await ctx.runQuery(api.datasets.getLatestRunCfg, { datasetId });
+    const plan = await ctx.runQuery(api.datasets.getLatestRunCfg, {
+      datasetId,
+    });
     if (!plan) throw new Error("No run config found. Generate one first.");
 
     const modalUrl = process.env.MODAL_TRAIN_URL;
     const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
-    const convexUrl = process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+    const convexUrl =
+      process.env.CONVEX_SITE_URL ||
+      process.env.CONVEX_URL ||
+      process.env.NEXT_PUBLIC_CONVEX_URL;
     if (!modalUrl) throw new Error("Missing MODAL_TRAIN_URL in Convex env");
-    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
-    if (!convexUrl) throw new Error("Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env");
+    if (!webhookSecret)
+      throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!convexUrl)
+      throw new Error(
+        "Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env"
+      );
 
-    const processedResp = await fetch(`${convexUrl}/dataset/processed-download-url`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-webhook-secret": webhookSecret },
-      body: JSON.stringify({ datasetId }),
-    });
+    const processedResp = await fetch(
+      `${convexUrl}/dataset/processed-download-url`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": webhookSecret,
+        },
+        body: JSON.stringify({ datasetId }),
+      }
+    );
     if (!processedResp.ok) {
       const t = await processedResp.text();
-      throw new Error(`Failed to get processed CSV URL: ${processedResp.status} ${t}`);
+      throw new Error(
+        `Failed to get processed CSV URL: ${processedResp.status} ${t}`
+      );
     }
     const processed = await processedResp.json();
 
-    const endpoint = modalUrl.endsWith("/train") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/train`;
+    const endpoint = modalUrl.endsWith("/train")
+      ? modalUrl
+      : `${modalUrl.replace(/\/$/, "")}/train`;
     const body = {
       datasetId,
       runCfgId: plan._id,
@@ -226,20 +246,29 @@ export const startTraining: unknown = action({
   },
 });
 
-
 export const predictModel: unknown = action({
   args: { modelId: v.id("trained_models"), input: v.any() },
   handler: async (ctx, { modelId, input }) => {
     const modalUrl = process.env.MODAL_PREDICT_URL;
     const webhookSecret = process.env.PREPROCESS_WEBHOOK_SECRET;
-    const convexUrl = process.env.CONVEX_SITE_URL || process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+    const convexUrl =
+      process.env.CONVEX_SITE_URL ||
+      process.env.CONVEX_URL ||
+      process.env.NEXT_PUBLIC_CONVEX_URL;
     if (!modalUrl) throw new Error("Missing MODAL_PREDICT_URL in Convex env");
-    if (!webhookSecret) throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
-    if (!convexUrl) throw new Error("Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env");
+    if (!webhookSecret)
+      throw new Error("Missing PREPROCESS_WEBHOOK_SECRET in Convex env");
+    if (!convexUrl)
+      throw new Error(
+        "Missing CONVEX_SITE_URL (preferred) or CONVEX_URL/NEXT_PUBLIC_CONVEX_URL in Convex env"
+      );
 
     const urlResp = await fetch(`${convexUrl}/models/download-url`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-webhook-secret": webhookSecret },
+      headers: {
+        "Content-Type": "application/json",
+        "x-webhook-secret": webhookSecret,
+      },
       body: JSON.stringify({ modelId }),
     });
     if (!urlResp.ok) {
@@ -249,7 +278,9 @@ export const predictModel: unknown = action({
     const data = await urlResp.json();
     const url = data.url;
 
-    const endpoint = modalUrl.endsWith("/predict") ? modalUrl : `${modalUrl.replace(/\/$/, "")}/predict`;
+    const endpoint = modalUrl.endsWith("/predict")
+      ? modalUrl
+      : `${modalUrl.replace(/\/$/, "")}/predict`;
     const body = { modelUrl: url, X: Array.isArray(input) ? input : [input] };
     const resp = await fetch(endpoint, {
       method: "POST",

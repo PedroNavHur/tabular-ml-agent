@@ -12,22 +12,38 @@ export default function ResultsClient({ id }: { id: string }) {
     | undefined;
   const getDownloadUrl = useMutation(api.datasets.getDownloadUrl);
 
-  function metricKindAndValue(metrics: unknown): { kind: "ba" | "mae" | null; value: number | null } {
-    if (!metrics || typeof metrics !== "object") return { kind: null, value: null };
+  function metricKindAndValue(metrics: unknown): {
+    kind: "ba" | "mae" | null;
+    value: number | null;
+  } {
+    if (!metrics || typeof metrics !== "object")
+      return { kind: null, value: null };
     const m = metrics as Record<string, unknown>;
-    if (typeof m["balanced_accuracy"] === "number") return { kind: "ba", value: Number(m["balanced_accuracy"]) };
-    if (typeof m["mae"] === "number") return { kind: "mae", value: Number(m["mae"]) };
+    if (typeof m["balanced_accuracy"] === "number")
+      return { kind: "ba", value: Number(m["balanced_accuracy"]) };
+    if (typeof m["mae"] === "number")
+      return { kind: "mae", value: Number(m["mae"]) };
     return { kind: null, value: null };
   }
 
   const rows = useMemo(() => {
-    const arr = models ? [...models] : [] as Doc<"trained_models">[];
+    const arr = models ? [...models] : ([] as Doc<"trained_models">[]);
     // Sort by best score: balanced_accuracy (higher is better) or mae (lower is better)
     arr.sort((a, b) => {
       const A = metricKindAndValue(a.metrics);
       const B = metricKindAndValue(b.metrics);
-      const scoreA = A.value == null ? Number.NEGATIVE_INFINITY : (A.kind === "mae" ? -A.value : A.value);
-      const scoreB = B.value == null ? Number.NEGATIVE_INFINITY : (B.kind === "mae" ? -B.value : B.value);
+      const scoreA =
+        A.value == null
+          ? Number.NEGATIVE_INFINITY
+          : A.kind === "mae"
+            ? -A.value
+            : A.value;
+      const scoreB =
+        B.value == null
+          ? Number.NEGATIVE_INFINITY
+          : B.kind === "mae"
+            ? -B.value
+            : B.value;
       return scoreB - scoreA; // descending
     });
     return arr;
@@ -48,11 +64,18 @@ export default function ResultsClient({ id }: { id: string }) {
     const hasMAE = typeof m["mae"] === "number";
     const hasMAEStd = typeof m["mae_std"] === "number";
     if (hasBA) {
-      const val = Math.max(0, Math.min(1, Number(m["balanced_accuracy"]))) * 100;
-      const std = hasBAStd ? Math.abs(Number(m["balanced_accuracy_std"])) * 100 : undefined;
+      const val =
+        Math.max(0, Math.min(1, Number(m["balanced_accuracy"]))) * 100;
+      const std = hasBAStd
+        ? Math.abs(Number(m["balanced_accuracy_std"])) * 100
+        : undefined;
       return (
         <div className="flex items-center gap-3">
-          <progress className="progress progress-primary w-56" value={val} max={100} />
+          <progress
+            className="progress progress-primary w-56"
+            value={val}
+            max={100}
+          />
           <div className="text-xs font-mono">
             {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
           </div>
@@ -65,7 +88,10 @@ export default function ResultsClient({ id }: { id: string }) {
       return (
         <div className="flex items-center gap-2 text-xs">
           <span className="badge badge-outline">MAE</span>
-          <span className="font-mono">{val.toFixed(4)}{std !== undefined ? ` ±${std.toFixed(4)}` : ""}</span>
+          <span className="font-mono">
+            {val.toFixed(4)}
+            {std !== undefined ? ` ±${std.toFixed(4)}` : ""}
+          </span>
           <span className="opacity-60">(lower is better)</span>
         </div>
       );
@@ -117,25 +143,32 @@ export default function ResultsClient({ id }: { id: string }) {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((m) => (
+                  rows.map(m => (
                     <tr key={String(m._id)}>
                       <td className="font-medium flex items-center gap-2">
                         {m.modelName}
                         {rows[0] && rows[0]._id === m._id ? (
-                          <span className="badge badge-success badge-sm">Best</span>
+                          <span className="badge badge-success badge-sm">
+                            Best
+                          </span>
                         ) : null}
                       </td>
                       <td className="text-xs opacity-90">
                         <MetricsCell metrics={m.metrics} />
                       </td>
                       <td className="text-right flex items-center justify-end gap-2">
-                        <Link className="btn btn-sm" href={`/studio/test/${id}?model=${String(m._id)}`}>
+                        <Link
+                          className="btn btn-sm"
+                          href={`/studio/test/${id}?model=${String(m._id)}`}
+                        >
                           Test
                         </Link>
                         <button
                           className="btn btn-sm btn-outline"
                           onClick={async () => {
-                            const url = await getDownloadUrl({ storageId: m.storageId });
+                            const url = await getDownloadUrl({
+                              storageId: m.storageId,
+                            });
                             if (url) window.open(url, "_blank");
                           }}
                         >
