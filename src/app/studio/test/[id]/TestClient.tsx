@@ -50,7 +50,7 @@ export default function TestClient({ id }: { id: string }) {
       const parsed = parseCsv(text, 50);
       setSamples(parsed.rows);
       toast.success("Samples loaded");
-    } catch (e) {
+    } catch {
       toast.error("Failed to load samples");
     }
   }
@@ -221,7 +221,7 @@ export default function TestClient({ id }: { id: string }) {
                   const res = await predict({ modelId, input: form });
                   setResult(res);
                   toast.success("Done");
-                } catch (e) {
+                } catch {
                   toast.error("Failed to predict");
                 }
               }}

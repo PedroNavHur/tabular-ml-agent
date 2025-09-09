@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useAction, useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "convex/_generated/api";
@@ -32,17 +32,7 @@ export default function SuggestClient({ id }: { id: string }) {
   ).flows.startTraining;
   const startTraining = useAction(startTrainingRef);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        toast("Generating training plan...");
-        await generateRunCfg({ datasetId });
-        toast.success("Training plan generated");
-      } catch (e) {
-        toast.error("Failed to generate plan");
-      }
-    })();
-  }, [datasetId, generateRunCfg]);
+  // Plan generation is now manual via the button below.
 
   const plan = useMemo(() => latestRunCfg?.cfg, [latestRunCfg]);
 
@@ -67,6 +57,23 @@ export default function SuggestClient({ id }: { id: string }) {
               </button>
             )}
             <button
+              className="btn"
+              disabled={!latestSummary || !!latestRunCfg}
+              onClick={async () => {
+                if (!latestSummary) return; // disabled anyway
+                if (latestRunCfg) return; // don't rerun if already exists
+                try {
+                  toast("Generating training plan...");
+                  await generateRunCfg({ datasetId });
+                  toast.success("Training plan generated");
+                } catch {
+                  toast.error("Failed to generate plan");
+                }
+              }}
+            >
+              Generate Run Config
+            </button>
+            <button
               className="btn btn-primary"
               disabled={!latestRunCfg || !latestSummary}
               onClick={async () => {
@@ -74,7 +81,7 @@ export default function SuggestClient({ id }: { id: string }) {
                   toast("Starting training...");
                   await startTraining({ datasetId });
                   toast.success("Training started");
-                } catch (e) {
+                } catch {
                   toast.error("Failed to start training");
                 }
               }}
