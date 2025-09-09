@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import Link from "next/link";
 import { api } from "convex/_generated/api";
@@ -35,6 +35,8 @@ export default function TrainClient({ id }: { id: string }) {
   // Plan generation is now manual via the button below.
 
   const plan = useMemo(() => latestRunCfg?.cfg, [latestRunCfg]);
+  const [generating, setGenerating] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   return (
     <div className="w-full max-w-6xl space-y-4">
@@ -58,16 +60,23 @@ export default function TrainClient({ id }: { id: string }) {
             )}
             <button
               className="btn"
-              disabled={!latestSummary || !!latestRunCfg}
+              disabled={!latestSummary || !!latestRunCfg || generating}
               onClick={async () => {
-                if (!latestSummary) return; // disabled anyway
-                if (latestRunCfg) return; // don't rerun if already exists
+                if (!latestSummary) return;
+                if (latestRunCfg) return;
+                if (generating) return;
+                setGenerating(true);
                 try {
-                  toast("Generating training plan...");
-                  await generateRunCfg({ datasetId });
-                  toast.success("Training plan generated");
-                } catch {
-                  toast.error("Failed to generate plan");
+                  await toast.promise(
+                    generateRunCfg({ datasetId }),
+                    {
+                      loading: "Generating training plan...",
+                      success: "Training plan generated",
+                      error: "Failed to generate plan",
+                    }
+                  );
+                } finally {
+                  setGenerating(false);
                 }
               }}
             >
@@ -75,14 +84,21 @@ export default function TrainClient({ id }: { id: string }) {
             </button>
             <button
               className="btn btn-primary"
-              disabled={!latestRunCfg || !latestSummary}
+              disabled={!latestRunCfg || !latestSummary || starting}
               onClick={async () => {
+                if (starting) return;
+                setStarting(true);
                 try {
-                  toast("Starting training...");
-                  await startTraining({ datasetId });
-                  toast.success("Training started");
-                } catch {
-                  toast.error("Failed to start training");
+                  await toast.promise(
+                    startTraining({ datasetId }),
+                    {
+                      loading: "Starting training...",
+                      success: "Training started",
+                      error: "Failed to start training",
+                    }
+                  );
+                } finally {
+                  setStarting(false);
                 }
               }}
             >

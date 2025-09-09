@@ -33,28 +33,38 @@ export default function TestClient({ id }: { id: string }) {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [result, setResult] = useState<unknown>(null);
+  const [predicting, setPredicting] = useState(false);
   const [samples, setSamples] = useState<Record<string, string>[]>([]);
+  const [samplesLoading, setSamplesLoading] = useState(false);
   const [sampleIndex, setSampleIndex] = useState<number | "">("");
 
   async function loadSamples() {
+    if (samplesLoading) return;
+    setSamplesLoading(true);
     try {
-      toast("Loading samples...");
-      const latestCompleted = Array.isArray(runs)
-        ? runs.find((r) => r.status === "completed" && r.processedStorageId)
-        : undefined;
-      if (!latestCompleted?.processedStorageId) {
-        toast.error("No processed data found");
-        return;
-      }
-      const url = await getDownloadUrl({ storageId: latestCompleted.processedStorageId });
-      if (!url) throw new Error("No URL");
-      const res = await fetch(url);
-      const text = await res.text();
-      const parsed = parseCsv(text, 50);
-      setSamples(parsed.rows);
-      toast.success("Samples loaded");
-    } catch {
-      toast.error("Failed to load samples");
+      await toast.promise(
+        (async () => {
+          const latestCompleted = Array.isArray(runs)
+            ? runs.find((r) => r.status === "completed" && r.processedStorageId)
+            : undefined;
+          if (!latestCompleted?.processedStorageId) {
+            throw new Error("No processed data found");
+          }
+          const url = await getDownloadUrl({ storageId: latestCompleted.processedStorageId });
+          if (!url) throw new Error("No URL");
+          const res = await fetch(url);
+          const text = await res.text();
+          const parsed = parseCsv(text, 50);
+          setSamples(parsed.rows);
+        })(),
+        {
+          loading: "Loading samples...",
+          success: "Samples loaded",
+          error: (e) => (e instanceof Error ? e.message : "Failed to load samples"),
+        }
+      );
+    } finally {
+      setSamplesLoading(false);
     }
   }
 
@@ -187,7 +197,7 @@ export default function TestClient({ id }: { id: string }) {
             </label>
 
             <div className="flex gap-2 items-end">
-              <button className="btn btn-outline" onClick={loadSamples} type="button">
+              <button className="btn btn-outline" onClick={loadSamples} type="button" disabled={samplesLoading}>
                 Load samples
               </button>
               <label className="form-control w-full md:max-w-xs">
@@ -254,17 +264,25 @@ export default function TestClient({ id }: { id: string }) {
           <div className="card-actions justify-end">
             <button
               className="btn btn-primary"
-              disabled={!selectedModel || !Array.isArray(models) || models.length === 0}
+              disabled={!selectedModel || !Array.isArray(models) || models.length === 0 || predicting}
               onClick={async () => {
                 if (!selectedModel) return;
+                setPredicting(true);
                 try {
-                  toast("Predicting...");
-                  const modelId = selectedModel as unknown as Id<"trained_models">;
-                  const res = await predict({ modelId, input: form });
-                  setResult(res);
-                  toast.success("Done");
-                } catch {
-                  toast.error("Failed to predict");
+                  await toast.promise(
+                    (async () => {
+                      const modelId = selectedModel as unknown as Id<"trained_models">;
+                      const res = await predict({ modelId, input: form });
+                      setResult(res);
+                    })(),
+                    {
+                      loading: "Predicting...",
+                      success: "Done",
+                      error: "Failed to predict",
+                    }
+                  );
+                } finally {
+                  setPredicting(false);
                 }
               }}
             >
