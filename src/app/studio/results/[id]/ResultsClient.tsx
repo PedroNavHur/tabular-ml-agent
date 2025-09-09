@@ -85,8 +85,8 @@ export default function ResultsClient({ id }: { id: string }) {
           <Link className="btn btn-ghost" href={`/studio/preprocess/${id}`}>
             ← Prev: Preprocess
           </Link>
-          <Link className="btn btn-outline" href={`/studio/suggest/${id}`}>
-            Suggest Models
+          <Link className="btn btn-outline" href={`/studio/train/${id}`}>
+            Train
           </Link>
         </div>
       </div>

@@ -316,11 +316,11 @@ export default function PreprocessClient({ id }: { id: string }) {
                 </button>
                 {(!headers.length || !target) ? (
                   <button className="btn btn-outline" disabled>
-                    Next: Suggest Models
+                    Next: Train
                   </button>
                 ) : (
-                  <a className="btn btn-outline" href={`/studio/suggest/${String(datasetId)}`}>
-                    Next: Suggest Models
+                  <a className="btn btn-outline" href={`/studio/train/${String(datasetId)}`}>
+                    Next: Train
                   </a>
                 )}
               </div>

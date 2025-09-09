@@ -21,9 +21,9 @@ export default function Home() {
               One tool to manage your datasets and models
             </h1>
             <p className="py-6 opacity-80">
-              Upload a CSV, profile your data, let the assistant suggest
-              classical scikit‑learn models, train them in the cloud, and test
-              predictions — all in minutes, fully reproducible.
+              Upload a CSV, profile your data, let the assistant generate a
+              training plan for classical scikit‑learn models, train in the
+              cloud, and test predictions — all in minutes, fully reproducible.
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <a className="btn btn-primary" href="/studio">Start in Studio</a>
@@ -67,7 +67,7 @@ export default function Home() {
           </div>
           <div className="card bg-base-200">
             <div className="card-body">
-              <h3 className="card-title">Suggest & Train</h3>
+              <h3 className="card-title">Plan & Train</h3>
               <p className="opacity-80">
                 The assistant proposes a run config of classical sklearn models.
                 We train in Modal, serialize with skops, and store artifacts in

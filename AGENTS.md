@@ -14,6 +14,6 @@ Key Non-negotiables:
 • Classification default metric = balanced_accuracy; regression default = MAE
 • Safe serialization: prefer skops (fallback joblib OK for MVP)
 • Hard timeouts: per-trial (60–90s) and global (e.g., 10–15 min)
-• Clean API contracts: /profile, /suggest, /train, /health
+• Clean API contracts: /profile, /train, /health
 • CORS allowlist for Vercel + Convex origins
 • Strict TypeScript types don't use "any"

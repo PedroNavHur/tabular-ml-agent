@@ -7,7 +7,7 @@ import type { Id, Doc } from "convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
 import { toast } from "sonner";
 
-export default function SuggestClient({ id }: { id: string }) {
+export default function TrainClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
   const latestSummary = useQuery(api.datasets.getLatestProfileSummary, { datasetId }) as
     | Doc<"profile_summaries">
@@ -38,7 +38,7 @@ export default function SuggestClient({ id }: { id: string }) {
 
   return (
     <div className="w-full max-w-6xl space-y-4">
-      <h2 className="text-xl font-semibold">Suggested Training Plan</h2>
+      <h2 className="text-xl font-semibold">Training Plan</h2>
       <div className="card bg-base-200">
         <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
