@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowBigLeft } from "lucide-react";
 import { useAction, useMutation, useQuery } from "convex/react";
+import { JsonEditor, type JsonData } from "json-edit-react";
 // toast handled via useToastOp
 import { api } from "convex/_generated/api";
 import { useToastOp } from "@/hooks/useToastOp";
@@ -334,9 +335,9 @@ export default function TestClient({ id }: { id: string }) {
         <div className="card-body">
           <h3 className="card-title">Result</h3>
           {result ? (
-            <pre className="text-xs whitespace-pre-wrap opacity-90">
-              {JSON.stringify(result as unknown, null, 2)}
-            </pre>
+            <div className="text-xs opacity-90">
+              <JsonEditor data={result as JsonData} viewOnly indent={2} />
+            </div>
           ) : (
             <div className="opacity-70">No prediction yet.</div>
           )}

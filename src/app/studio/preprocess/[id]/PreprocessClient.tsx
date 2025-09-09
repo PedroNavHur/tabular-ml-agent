@@ -1,13 +1,14 @@
 "use client";
+import { useToastOp } from "@/hooks/useToastOp";
 import { api } from "convex/_generated/api";
-import type { Id, Doc } from "convex/_generated/dataModel";
+import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useMutation, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
-import Link from "next/link";
-import { toast } from "sonner";
+import { githubDarkTheme, JsonEditor, type JsonData } from "json-edit-react";
 import { ArrowBigRight } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useToastOp } from "@/hooks/useToastOp";
+import { toast } from "sonner";
 
 type TaskType = "auto" | "classification" | "regression";
 
@@ -384,9 +385,14 @@ export default function PreprocessClient({ id }: { id: string }) {
                       {/* processed filename omitted to avoid long names cluttering the UI */}
                     </div>
                     {runs[0].summary ? (
-                      <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
-                        {JSON.stringify(runs[0].summary, null, 2)}
-                      </pre>
+                      <div className="text-xs opacity-80 max-h-40 overflow-auto">
+                        <JsonEditor
+                          data={runs[0].summary as unknown as JsonData}
+                          rootFontSize={"0.75rem"}
+                          viewOnly
+                          indent={2}
+                        />
+                      </div>
                     ) : null}
                     <div className="card-actions justify-end">
                       {info ? (
@@ -415,13 +421,20 @@ export default function PreprocessClient({ id }: { id: string }) {
                       <div>
                         <div className="font-medium">Status: saved</div>
                         <div className="text-xs opacity-70">
-                          Created: {new Date(latestProfile.createdAt).toLocaleString()}
+                          Created:{" "}
+                          {new Date(latestProfile.createdAt).toLocaleString()}
                         </div>
                       </div>
                     </div>
-                    <pre className="text-xs whitespace-pre-wrap opacity-80 max-h-40 overflow-auto">
-                      {JSON.stringify(latestProfile.report, null, 2)}
-                    </pre>
+                    <div className="text-xs opacity-80 max-h-40 overflow-auto">
+                      <JsonEditor
+                        data={latestProfile.report as unknown as JsonData}
+                        theme={githubDarkTheme}
+                        rootFontSize={"0.75rem"}
+                        viewOnly
+                        indent={2}
+                      />
+                    </div>
                   </>
                 )}
               </div>

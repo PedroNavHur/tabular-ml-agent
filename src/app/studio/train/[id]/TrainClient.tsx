@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowBigLeft } from "lucide-react";
 import { useMemo } from "react";
 import { ArrowBigRight } from "lucide-react";
+import { JsonEditor, type JsonData } from "json-edit-react";
 
 export default function TrainClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -98,19 +99,69 @@ export default function TrainClient({ id }: { id: string }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card bg-base-200">
           <div className="card-body">
+            <h3 className="card-title">Latest Training</h3>
+            {trainedModels === undefined ? (
+              <div className="opacity-70">Loading...</div>
+            ) : !trainedModels || trainedModels.length === 0 ? (
+              <div className="opacity-70">
+                {startOp.inFlight ? "Training in progress..." : "No trained models yet."}
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">Status: completed</div>
+                    <div className="text-xs opacity-70">
+                      Updated: {new Date(trainedModels[0].createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="text-xs opacity-70">Models: {trainedModels.length}</div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="card bg-base-200">
+          <div className="card-body">
+            <h3 className="card-title">Plan JSON</h3>
+            {latestRunCfg === undefined ? (
+              <div className="opacity-70">Generating...</div>
+            ) : !latestRunCfg ? (
+              <div className="opacity-70">No plan yet.</div>
+            ) : (
+              <div className="text-xs opacity-90 max-h-80 overflow-auto">
+                <JsonEditor
+                  data={
+                    (typeof plan === "string"
+                      ? (() => {
+                          try {
+                            return JSON.parse(plan as string);
+                          } catch {
+                            return { value: plan };
+                          }
+                        })()
+                      : (plan as unknown)) as JsonData
+                  }
+                  viewOnly
+                  indent={2}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="card bg-base-200 md:col-span-2">
+          <div className="card-body">
             <h3 className="card-title">Latest Profile Summary</h3>
             {latestSummary === undefined ? (
               <div className="opacity-70">Loading...</div>
             ) : !latestSummary ? (
               <div className="opacity-70">
-                {latestProfile
-                  ? "Profiling in progress..."
-                  : "No summary found."}
+                {latestProfile ? "Profiling in progress..." : "No summary found."}
               </div>
             ) : (
               (() => {
-                let items: Array<{ title: string; detail: string }> | null =
-                  null;
+                let items: Array<{ title: string; detail: string }> | null = null;
                 try {
                   const parsed = JSON.parse(latestSummary.summary);
                   if (Array.isArray(parsed)) items = parsed;
@@ -119,8 +170,7 @@ export default function TrainClient({ id }: { id: string }) {
                   <ul className="list-disc pl-5 space-y-1">
                     {items.map((it, idx) => (
                       <li key={idx}>
-                        <span className="font-semibold">{it.title}:</span>{" "}
-                        {it.detail}
+                        <span className="font-semibold">{it.title}:</span> {it.detail}
                       </li>
                     ))}
                   </ul>
@@ -130,23 +180,6 @@ export default function TrainClient({ id }: { id: string }) {
                   </div>
                 );
               })()
-            )}
-          </div>
-        </div>
-
-        <div className="card bg-base-200 md:col-span-1">
-          <div className="card-body">
-            <h3 className="card-title">Plan JSON</h3>
-            {latestRunCfg === undefined ? (
-              <div className="opacity-70">Generating...</div>
-            ) : !latestRunCfg ? (
-              <div className="opacity-70">No plan yet.</div>
-            ) : (
-              <pre className="text-xs whitespace-pre-wrap opacity-90 max-h-80 overflow-auto">
-                {typeof plan === "string"
-                  ? plan
-                  : JSON.stringify(plan as unknown, null, 2)}
-              </pre>
             )}
           </div>
         </div>

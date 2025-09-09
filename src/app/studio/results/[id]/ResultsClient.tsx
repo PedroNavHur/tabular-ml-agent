@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id, Doc } from "convex/_generated/dataModel";
+import { JsonEditor, type JsonData } from "json-edit-react";
 
 export default function ResultsClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -55,7 +56,7 @@ export default function ResultsClient({ id }: { id: string }) {
     if (!metrics || typeof metrics !== "object") {
       return (
         <span className="opacity-80 text-xs">
-          {typeof metrics === "string" ? metrics : JSON.stringify(metrics)}
+          {typeof metrics === "string" ? metrics : String(metrics)}
         </span>
       );
     }
@@ -98,9 +99,9 @@ export default function ResultsClient({ id }: { id: string }) {
       );
     }
     return (
-      <span className="opacity-80 text-xs">
-        {JSON.stringify(metrics, null, 2)}
-      </span>
+      <div className="text-xs opacity-80 max-w-md overflow-auto">
+        <JsonEditor data={metrics as JsonData} viewOnly indent={2} />
+      </div>
     );
   }
 
