@@ -67,14 +67,13 @@ export default function TrainClient({ id }: { id: string }) {
                 if (generating) return;
                 setGenerating(true);
                 try {
-                  await toast.promise(
-                    generateRunCfg({ datasetId }),
-                    {
-                      loading: "Generating training plan...",
-                      success: "Training plan generated",
-                      error: "Failed to generate plan",
-                    }
-                  );
+                  const op = generateRunCfg({ datasetId });
+                  toast.promise(op, {
+                    loading: "Generating training plan...",
+                    success: "Training plan generated",
+                    error: "Failed to generate plan",
+                  });
+                  await op;
                 } finally {
                   setGenerating(false);
                 }
@@ -89,14 +88,13 @@ export default function TrainClient({ id }: { id: string }) {
                 if (starting) return;
                 setStarting(true);
                 try {
-                  await toast.promise(
-                    startTraining({ datasetId }),
-                    {
-                      loading: "Starting training...",
-                      success: "Training started",
-                      error: "Failed to start training",
-                    }
-                  );
+                  const op = startTraining({ datasetId });
+                  toast.promise(op, {
+                    loading: "Starting training...",
+                    success: "Training started",
+                    error: "Failed to start training",
+                  });
+                  await op;
                 } finally {
                   setStarting(false);
                 }

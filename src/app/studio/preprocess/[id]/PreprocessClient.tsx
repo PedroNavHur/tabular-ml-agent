@@ -117,24 +117,23 @@ export default function PreprocessClient({ id }: { id: string }) {
     if (!info) return;
     setLoading(true);
     try {
-      await toast.promise(
-        (async () => {
-          const url = await getDownloadUrl({ storageId: info.storageId });
-          if (!url) throw new Error("No download URL");
-          const res = await fetch(url);
-          const text = await res.text();
-          const { headers, rows } = parseCsvPreview(text, n ?? previewRows);
-          setHeaders(headers);
-          setRows(rows);
-          if (headers.length > 0 && !target)
-            setTarget(headers[headers.length - 1] ?? null);
-        })(),
-        {
-          loading: "Loading preview...",
-          success: "Preview loaded",
-          error: "Failed to load preview",
-        }
-      );
+      const op = (async () => {
+        const url = await getDownloadUrl({ storageId: info.storageId });
+        if (!url) throw new Error("No download URL");
+        const res = await fetch(url);
+        const text = await res.text();
+        const { headers, rows } = parseCsvPreview(text, n ?? previewRows);
+        setHeaders(headers);
+        setRows(rows);
+        if (headers.length > 0 && !target)
+          setTarget(headers[headers.length - 1] ?? null);
+      })();
+      toast.promise(op, {
+        loading: "Loading preview...",
+        success: "Preview loaded",
+        error: "Failed to load preview",
+      });
+      await op;
     } finally {
       setLoading(false);
     }
