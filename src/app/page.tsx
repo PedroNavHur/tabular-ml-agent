@@ -1,3 +1,6 @@
+"use client";
+import { motion } from "motion/react";
+
 export default function Home() {
   return (
     <div className="min-h-screen">
@@ -17,27 +20,64 @@ export default function Home() {
       </div>
 
       {/* Hero */}
-      <section className="hero bg-base-200">
-        <div className="hero-content text-center py-16">
-          <div className="max-w-3xl">
-            <div className="badge badge-outline mb-4">FirstModel</div>
-            <h1 className="text-4xl md:text-6xl font-bold">
+      <section className="hero min-h-[calc(100dvh-4rem)] bg-base-200">
+        <div className="hero-content text-center">
+          <motion.div
+            className="max-w-3xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <motion.div
+              className="badge badge-outline mb-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              FirstModel
+            </motion.div>
+            <motion.h1
+              className="text-4xl md:text-6xl font-bold"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
               From dataset to first model in minutes
-            </h1>
-            <p className="py-6 opacity-80">
+            </motion.h1>
+            <motion.p
+              className="py-6 opacity-80"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
               Upload a CSV, profile your data, let the assistant generate a
               training plan for classical scikit‑learn models, train in the
               cloud, and test predictions — all in minutes, fully reproducible.
-            </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <a className="btn btn-primary" href="/studio">
+            </motion.p>
+            <motion.div
+              className="flex items-center justify-center gap-3 flex-wrap"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+            >
+              <motion.a
+                className="btn btn-primary"
+                href="/studio"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 Start in Studio
-              </a>
-              <a className="btn btn-outline" href="#features">
+              </motion.a>
+              <motion.a
+                className="btn btn-outline"
+                href="#features"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 Explore features
-              </a>
-            </div>
-          </div>
+              </motion.a>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -67,7 +107,13 @@ export default function Home() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card bg-base-200">
+          <motion.div
+            className="card bg-base-200"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <div className="card-body">
               <h3 className="card-title">Upload & Profile</h3>
               <p className="opacity-80">
@@ -81,8 +127,14 @@ export default function Home() {
                 </a>
               </div>
             </div>
-          </div>
-          <div className="card bg-base-200">
+          </motion.div>
+          <motion.div
+            className="card bg-base-200"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
+          >
             <div className="card-body">
               <h3 className="card-title">Plan & Train</h3>
               <p className="opacity-80">
@@ -96,8 +148,14 @@ export default function Home() {
                 </a>
               </div>
             </div>
-          </div>
-          <div className="card bg-base-200">
+          </motion.div>
+          <motion.div
+            className="card bg-base-200"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+          >
             <div className="card-body">
               <h3 className="card-title">Evaluate & Predict</h3>
               <p className="opacity-80">
@@ -111,13 +169,19 @@ export default function Home() {
                 </a>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA banner */}
       <section className="container mx-auto max-w-6xl px-4 md:px-6 py-10">
-        <div className="hero rounded-box bg-base-300">
+        <motion.div
+          className="hero rounded-box bg-base-300"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <div className="hero-content text-center py-12">
             <div className="max-w-2xl">
               <h3 className="text-2xl md:text-3xl font-bold">
@@ -137,12 +201,18 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Stats */}
       <section className="container mx-auto max-w-6xl px-4 md:px-6 py-8">
-        <div className="stats stats-vertical md:stats-horizontal shadow w-full">
+        <motion.div
+          className="stats stats-vertical md:stats-horizontal shadow w-full"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
           <div className="stat">
             <div className="stat-title">Models Trained</div>
             <div className="stat-value">50+</div>
@@ -158,7 +228,7 @@ export default function Home() {
             <div className="stat-value">100%</div>
             <div className="stat-desc">Skops artifacts + manifests</div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
