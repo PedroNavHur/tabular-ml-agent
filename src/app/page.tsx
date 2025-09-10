@@ -42,7 +42,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              From dataset to first model in minutes
+              From dataset to <span className="text-accent">first model</span> in <span className="underline decoration-wavy decoration-6 underline-offset-8 decoration-accent">minutes</span>
             </motion.h1>
             <motion.p
               className="py-6 opacity-80"
