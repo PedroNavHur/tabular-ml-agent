@@ -115,6 +115,8 @@ export default function PreprocessClient({ id }: { id: string }) {
   ) as Doc<"profile_summaries"> | null | undefined;
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
+  const hasPending =
+    Array.isArray(runs) && runs.some(r => r.status === "pending" || r.status === "running");
 
   const loadPreview = async (n?: number) => {
     if (!info || loading) return;
@@ -159,11 +161,23 @@ export default function PreprocessClient({ id }: { id: string }) {
             <div className="card-body gap-3">
               <div className="flex items-center justify-between pt-2">
                 <div className="flex gap-2">
-                  <button
-                    className="btn btn-secondary"
-                    disabled={!headers.length || !target}
-                    onClick={async () => {
+                  <div
+                    className="tooltip tooltip-right"
+                    data-tip={
+                      hasPending
+                        ? "A preprocessing run is pending. Please wait until it completes."
+                        : undefined
+                    }
+                  >
+                    <button
+                      className="btn btn-secondary"
+                      disabled={!headers.length || !target || hasPending}
+                      onClick={async () => {
                       if (!info) return;
+                      if (hasPending) {
+                        toast("A preprocess run is already in progress.");
+                        return;
+                      }
                       try {
                         await startPreprocess({
                           datasetId: info._id as Id<"datasets">,
@@ -185,17 +199,25 @@ export default function PreprocessClient({ id }: { id: string }) {
                       } finally {
                         // no-op
                       }
-                    }}
-                  >
-                    Preprocess
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    disabled={!headers.length || !target || !hasCompleted}
-                    title={
-                      !hasCompleted ? "Run preprocessing first" : undefined
+                      }}
+                    >
+                      Preprocess
+                    </button>
+                  </div>
+                  <div
+                    className="tooltip"
+                    data-tip={
+                      !headers.length || !target
+                        ? "Load preview and choose a target."
+                        : !hasCompleted
+                          ? "Run preprocessing first."
+                          : undefined
                     }
-                    onClick={async () => {
+                  >
+                    <button
+                      className="btn btn-secondary"
+                      disabled={!headers.length || !target || !hasCompleted}
+                      onClick={async () => {
                       if (!info) return;
                       try {
                         await summarizeProfile({
@@ -211,10 +233,11 @@ export default function PreprocessClient({ id }: { id: string }) {
                       } finally {
                         // no-op
                       }
-                    }}
-                  >
-                    Run Profiling
-                  </button>
+                      }}
+                    >
+                      Run Profiling
+                    </button>
+                  </div>
                 </div>
                 <div>
                   {!headers.length || !target ? (
