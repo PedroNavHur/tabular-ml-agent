@@ -4,11 +4,10 @@ import { api } from "convex/_generated/api";
 import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
-import Link from "next/link";
-import { ArrowBigLeft } from "lucide-react";
-import { useMemo } from "react";
-import { ArrowBigRight } from "lucide-react";
 import { JsonEditor, type JsonData } from "json-edit-react";
+import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
 
 export default function TrainClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -128,7 +127,7 @@ export default function TrainClient({ id }: { id: string }) {
         </div>
         <div className="card bg-base-200">
           <div className="card-body">
-            <h3 className="card-title">Plan JSON</h3>
+            <h3 className="card-title">Last Training Config</h3>
             {latestRunCfg === undefined ? (
               <div className="opacity-70">Generating...</div>
             ) : !latestRunCfg ? (
@@ -149,6 +148,7 @@ export default function TrainClient({ id }: { id: string }) {
                   }
                   viewOnly
                   indent={2}
+                  rootFontSize={"0.6rem"}
                 />
               </div>
             )}

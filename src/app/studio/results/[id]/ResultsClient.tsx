@@ -175,7 +175,12 @@ export default function ResultsClient({ id }: { id: string }) {
     }
     return (
       <div className="text-xs opacity-80 max-w-md overflow-auto">
-        <JsonEditor data={metrics as JsonData} viewOnly indent={2} />
+        <JsonEditor
+          data={metrics as JsonData}
+          viewOnly
+          indent={2}
+          rootFontSize={"0.6rem"}
+        />
       </div>
     );
   }

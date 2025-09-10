@@ -1,14 +1,14 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowBigLeft } from "lucide-react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { JsonEditor, type JsonData } from "json-edit-react";
+import { ArrowBigLeft } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 // toast handled via useToastOp
-import { api } from "convex/_generated/api";
 import { useToastOp } from "@/hooks/useToastOp";
-import type { Id, Doc } from "convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import type { Doc, Id } from "convex/_generated/dataModel";
 import type { FunctionReference } from "convex/server";
 
 export default function TestClient({ id }: { id: string }) {
@@ -336,7 +336,12 @@ export default function TestClient({ id }: { id: string }) {
           <h3 className="card-title">Result</h3>
           {result ? (
             <div className="text-xs opacity-90">
-              <JsonEditor data={result as JsonData} viewOnly indent={2} />
+              <JsonEditor
+                data={result as JsonData}
+                viewOnly
+                indent={2}
+                rootFontSize={"0.6rem"}
+              />
             </div>
           ) : (
             <div className="opacity-70">No prediction yet.</div>

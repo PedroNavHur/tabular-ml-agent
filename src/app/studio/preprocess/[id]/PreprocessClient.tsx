@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useMutation, useQuery } from "convex/react";
 import type { FunctionReference } from "convex/server";
-import { githubDarkTheme, JsonEditor, type JsonData } from "json-edit-react";
+import { JsonEditor, type JsonData } from "json-edit-react";
 import { ArrowBigRight } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -396,7 +396,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                       <div className="text-xs opacity-80 max-h-40 overflow-auto">
                         <JsonEditor
                           data={runs[0].summary as unknown as JsonData}
-                          rootFontSize={"0.75rem"}
+                          rootFontSize={"0.6rem"}
                           viewOnly
                           indent={2}
                         />
@@ -437,8 +437,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     <div className="text-xs opacity-80 max-h-40 overflow-auto">
                       <JsonEditor
                         data={latestProfile.report as unknown as JsonData}
-                        theme={githubDarkTheme}
-                        rootFontSize={"0.75rem"}
+                        rootFontSize={"0.6rem"}
                         viewOnly
                         indent={2}
                       />
