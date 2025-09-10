@@ -36,7 +36,7 @@ export default function StudioNavbar({
       <div className="hidden flex-none lg:block">
         <ul className="menu menu-horizontal">
           <li>
-            <Link href="#">Help</Link>
+            <Link href="/">Help</Link>
           </li>
         </ul>
       </div>
