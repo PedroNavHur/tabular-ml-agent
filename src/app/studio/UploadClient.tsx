@@ -17,6 +17,12 @@ export default function UploadClient() {
       <FileUploadCard
         onSelectFileAction={async file => {
           if (!file) return;
+          // Enforce 1MB max for demo
+          const maxBytes = 1 * 1024 * 1024;
+          if (file.size > maxBytes) {
+            setStatus("File too large. Max 1MB for demo.");
+            return;
+          }
           setFileName(file.name);
           setStatus("Uploading...");
           try {

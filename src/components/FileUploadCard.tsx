@@ -38,7 +38,11 @@ export default function FileUploadCard({
             className="file-input file-input-primary w-full"
             onChange={handleChange}
           />
-          <label className="label">Max size 10MB</label>
+          <div className="label">
+            <div className="tooltip" data-tip="Training and inference are resource-intensive. To control costs, this demo limits dataset size to 1 MB.">
+              <span>Max size 1MB*</span>
+            </div>
+          </div>
         </fieldset>
       </div>
     </div>
