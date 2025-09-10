@@ -7,7 +7,7 @@ type StudioNavbarProps = {
 
 export default function StudioNavbar({
   drawerId,
-  title = "Studio",
+  title = "FirstModel",
 }: StudioNavbarProps) {
   return (
     <div className="navbar bg-base-300 w-full">

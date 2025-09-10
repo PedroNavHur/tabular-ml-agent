@@ -4,7 +4,7 @@ export default function Home() {
       {/* Navbar */}
       <div className="navbar bg-base-100 shadow-sm">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl">TabularML</a>
+          <a className="btn btn-ghost text-xl">FirstModel</a>
         </div>
         <div className="flex-none gap-2">
           <a className="btn btn-ghost" href="/studio">
@@ -20,11 +20,9 @@ export default function Home() {
       <section className="hero bg-base-200">
         <div className="hero-content text-center py-16">
           <div className="max-w-3xl">
-            <div className="badge badge-outline mb-4">
-              AutoML for tabular data
-            </div>
+            <div className="badge badge-outline mb-4">FirstModel</div>
             <h1 className="text-4xl md:text-6xl font-bold">
-              One tool to manage your datasets and models
+              From dataset to first model in minutes
             </h1>
             <p className="py-6 opacity-80">
               Upload a CSV, profile your data, let the assistant generate a
@@ -126,7 +124,7 @@ export default function Home() {
                 Don’t replace. Integrate.
               </h3>
               <p className="opacity-80 mt-2">
-                Keep your pandas workflows and sklearn pipelines. TabularML sits
+                Keep your pandas workflows and sklearn pipelines. FirstModel sits
                 on top, making the boring parts delightful and reproducible.
               </p>
               <div className="mt-4 flex items-center justify-center gap-3">
@@ -166,7 +164,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="footer bg-base-200 p-10">
         <aside>
-          <a className="btn btn-ghost text-xl">TabularML</a>
+          <a className="btn btn-ghost text-xl">FirstModel</a>
           <p className="opacity-70 max-w-sm">
             AutoML for tabular data. Built on Next.js, Convex, Modal and
             scikit‑learn.

@@ -7,7 +7,7 @@ import type { FunctionReference } from "convex/server";
 import { JsonEditor, type JsonData } from "json-edit-react";
 import { ArrowBigRight } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type TaskType = "auto" | "classification" | "regression";
@@ -90,7 +90,7 @@ export default function PreprocessClient({ id }: { id: string }) {
   const info = useMemo(() => dataset, [dataset]);
   const previewOp = useToastOp();
   const loading = previewOp.inFlight;
-  const [previewRows, setPreviewRows] = useState<number>(20);
+  const [previewRows, setPreviewRows] = useState<number>(5);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [target, setTarget] = useState<string | null>(null);
@@ -137,6 +137,14 @@ export default function PreprocessClient({ id }: { id: string }) {
       }
     );
   };
+
+  // Auto-load a small preview by default (5 rows)
+  useEffect(() => {
+    if (info && headers.length === 0 && !loading) {
+      void loadPreview(5);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [info]);
 
   return (
     <div className="w-full max-w-6xl space-y-4">
@@ -238,7 +246,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                 <div className="flex gap-2 items-center">
                   <span className="text-xs opacity-70">Rows</span>
                   <div className="join">
-                    {[10, 20, 50, 100].map(n => (
+                    {[5, 10, 20, 50, 100].map(n => (
                       <button
                         key={n}
                         type="button"
