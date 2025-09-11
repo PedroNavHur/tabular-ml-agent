@@ -27,6 +27,7 @@ Set these in the correct places to enable preprocessing:
 Health check: Once served/deployed, the Modal app exposes `GET /health` returning `{ "ok": true }`.
 
 Notes
+
 - Uploads are limited to 1MB in the demo UI (see `src/app/studio/UploadClient.tsx`).
 - Preview defaults to 5 rows and can be adjusted via the row selector.
 - “Next” actions are primary; disabled buttons surface tooltips explaining why.

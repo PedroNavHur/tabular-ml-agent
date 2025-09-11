@@ -116,7 +116,8 @@ export default function PreprocessClient({ id }: { id: string }) {
   const hasCompleted =
     Array.isArray(runs) && runs.some(r => r.status === "completed");
   const hasPending =
-    Array.isArray(runs) && runs.some(r => r.status === "pending" || r.status === "running");
+    Array.isArray(runs) &&
+    runs.some(r => r.status === "pending" || r.status === "running");
 
   const loadPreview = async (n?: number) => {
     if (!info || loading) return;
@@ -173,32 +174,32 @@ export default function PreprocessClient({ id }: { id: string }) {
                       className="btn btn-secondary"
                       disabled={!headers.length || !target || hasPending}
                       onClick={async () => {
-                      if (!info) return;
-                      if (hasPending) {
-                        toast("A preprocess run is already in progress.");
-                        return;
-                      }
-                      try {
-                        await startPreprocess({
-                          datasetId: info._id as Id<"datasets">,
-                          params: {
-                            target,
-                            idColumn,
-                            taskType,
-                            missing,
-                            testSize: 0.2,
-                          },
-                        });
-                        toast.success("Preprocess started");
-                      } catch (e: unknown) {
-                        const msg =
-                          e instanceof Error
-                            ? e.message
-                            : "Failed to start preprocess";
-                        toast.error(msg);
-                      } finally {
-                        // no-op
-                      }
+                        if (!info) return;
+                        if (hasPending) {
+                          toast("A preprocess run is already in progress.");
+                          return;
+                        }
+                        try {
+                          await startPreprocess({
+                            datasetId: info._id as Id<"datasets">,
+                            params: {
+                              target,
+                              idColumn,
+                              taskType,
+                              missing,
+                              testSize: 0.2,
+                            },
+                          });
+                          toast.success("Preprocess started");
+                        } catch (e: unknown) {
+                          const msg =
+                            e instanceof Error
+                              ? e.message
+                              : "Failed to start preprocess";
+                          toast.error(msg);
+                        } finally {
+                          // no-op
+                        }
                       }}
                     >
                       Preprocess
@@ -218,21 +219,21 @@ export default function PreprocessClient({ id }: { id: string }) {
                       className="btn btn-secondary"
                       disabled={!headers.length || !target || !hasCompleted}
                       onClick={async () => {
-                      if (!info) return;
-                      try {
-                        await summarizeProfile({
-                          datasetId: info._id as Id<"datasets">,
-                        });
-                        toast.success("Profile summarized");
-                      } catch (e: unknown) {
-                        const msg =
-                          e instanceof Error
-                            ? e.message
-                            : "Failed to summarize profile";
-                        toast.error(msg);
-                      } finally {
-                        // no-op
-                      }
+                        if (!info) return;
+                        try {
+                          await summarizeProfile({
+                            datasetId: info._id as Id<"datasets">,
+                          });
+                          toast.success("Profile summarized");
+                        } catch (e: unknown) {
+                          const msg =
+                            e instanceof Error
+                              ? e.message
+                              : "Failed to summarize profile";
+                          toast.error(msg);
+                        } finally {
+                          // no-op
+                        }
                       }}
                     >
                       Run Profiling

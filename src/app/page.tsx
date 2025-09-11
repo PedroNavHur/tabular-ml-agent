@@ -7,7 +7,7 @@ export default function Home() {
       {/* Navbar */}
       <div className="navbar bg-base-100 shadow-sm">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl">FirstModel</a>
+          <a className="btn btn-ghost text-xl text-accent">FirstModel</a>
         </div>
         <div className="flex-none gap-2">
           <a className="btn btn-ghost" href="/studio">
@@ -34,7 +34,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
             >
-              FirstModel
+              An Autonomous ML Agent
             </motion.div>
             <motion.h1
               className="text-4xl md:text-6xl font-bold"
@@ -42,7 +42,11 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              From dataset to <span className="text-accent">first model</span> in <span className="underline decoration-wavy decoration-6 underline-offset-8 decoration-accent">minutes</span>
+              From dataset to <span className="text-accent">first model</span>{" "}
+              in{" "}
+              <span className="underline decoration-wavy decoration-6 underline-offset-8 decoration-accent">
+                minutes
+              </span>
             </motion.h1>
             <motion.p
               className="py-6 opacity-80"
@@ -50,9 +54,10 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
             >
-              Upload a CSV, profile your data, let the assistant generate a
-              training plan for classical scikit‑learn models, train in the
-              cloud, and test predictions — all in minutes, fully reproducible.
+              Start with a CSV, and FirstModel takes care of the rest —
+              profiling your data, suggesting a training plan, and running
+              scikit-learn models in the cloud. In just minutes, you can test
+              predictions from your first model.
             </motion.p>
             <motion.div
               className="flex items-center justify-center gap-3 flex-wrap"
@@ -188,8 +193,10 @@ export default function Home() {
                 Don’t replace. Integrate.
               </h3>
               <p className="opacity-80 mt-2">
-                Keep your pandas workflows and sklearn pipelines. FirstModel sits
-                on top, making the boring parts delightful and reproducible.
+                Keep your pandas workflows and sklearn pipelines. FirstModel
+                handles the tedious preprocessing and baseline training, so you
+                can skip to what matters: refining and tuning your best model
+                family.
               </p>
               <div className="mt-4 flex items-center justify-center gap-3">
                 <a className="btn btn-primary" href="/studio">
