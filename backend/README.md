@@ -11,6 +11,7 @@ This backend runs on Modal and performs dataset preprocessing and basic profilin
 - Uploads the processed CSV back to Convex storage.
 - Marks the run `completed` with the processed file info + summary.
 - Generates a lightweight profile and stores it in Convex.
+- Trains baseline models and saves artifacts + metrics in Convex (classification adds accuracy/precision/recall/f1 alongside balanced_accuracy; regression logs MAE).
 
 ## Project layout
 
@@ -73,6 +74,16 @@ This prints a temporary URL. Use that as `MODAL_PREPROCESS_URL` (in Convex env) 
     ```
   - Returns: `{ "ok": true }` on success.
 
+- `POST /train`
+  - Body JSON: `{ datasetId, runCfgId?, csvUrl, cfg, callbacks: { uploadUrl, saveModel? }, secret }`
+  - Runs CV for each model, fits the pipeline, serializes with skops, uploads artifact, and records metrics.
+  - Returns `{ ok: true, results: [...] }`.
+
+- `POST /predict`
+  - Body JSON: `{ modelUrl, X: Array<object> }`
+  - Loads a skops artifact and returns predictions (and probabilities if available).
+  - Trust model loading: we audit types and allow‑list safe sklearn internals. For testing, set `ALLOW_UNTRUSTED_MODELS=1` in the Modal container env to use `trusted=true`.
+
 ## Data recorded in Convex
 
 - `preprocess_runs.summary` includes:
@@ -86,3 +97,4 @@ This prints a temporary URL. Use that as `MODAL_PREPROCESS_URL` (in Convex env) 
 
 - For large files, consider streaming or chunking in the future. The MVP reads CSV into memory.
 - Keep the original CSV immutable, and store the latest processed CSV for the active workflow (older processed files may be pruned while retaining run metadata).
+- Classification metrics returned: `balanced_accuracy`, `accuracy`, `precision`, `recall`, `f1` (+ `*_std`). Regression: `mae` (+ `mae_std`).

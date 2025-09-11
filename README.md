@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project with Convex (DB/realtime) and a Modal FastAPI backend for tabular AutoML preprocessing and profiling.
+FirstModel — From dataset to first model in minutes.
+
+This is a [Next.js](https://nextjs.org) app (App Router) using [Convex](https://www.convex.dev/) for realtime/storage and a Modal‑hosted FastAPI backend for preprocessing, profiling and training. It turns a CSV into a reproducible baseline model and pipeline artifact quickly.
 
 ## Environment Setup (Convex + Modal)
 
@@ -24,6 +26,12 @@ Set these in the correct places to enable preprocessing:
 
 Health check: Once served/deployed, the Modal app exposes `GET /health` returning `{ "ok": true }`.
 
+Notes
+- Uploads are limited to 1MB in the demo UI (see `src/app/studio/UploadClient.tsx`).
+- Preview defaults to 5 rows and can be adjusted via the row selector.
+- “Next” actions are primary; disabled buttons surface tooltips explaining why.
+- Results show balanced accuracy plus accuracy/precision/recall/f1 for classification and MAE for regression.
+
 ## Getting Started
 
 First, run the development server:
@@ -40,21 +48,17 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the landing page by modifying `src/app/page.tsx`. The page auto‑updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Modal backend changes (important)
 
-To learn more about Next.js, take a look at the following resources:
+- Predict endpoint: skops allow‑list expanded to load common sklearn internals. You can opt‑in to a permissive load for testing via `ALLOW_UNTRUSTED_MODELS=1` in the container env.
+- Training endpoint: returns additional classification metrics: `accuracy`, `precision` (macro), `recall` (macro), and `f1` (macro), each with `*_std`, in addition to `balanced_accuracy`. Regression still returns `mae` and `mae_std`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Brand & Metadata
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Brand: FirstModel
+- Tagline: “From dataset to first model in minutes.”
+- Metadata updated in `src/app/layout.tsx` (OpenGraph/Twitter, authors, creator/publisher).
