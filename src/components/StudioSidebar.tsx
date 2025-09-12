@@ -1,15 +1,15 @@
 "use client";
+import {
+    FileSpreadsheet,
+    FileUp,
+    Home,
+    LineChart,
+    PencilRuler,
+    PlayCircle,
+    Sliders,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  PencilRuler,
-  FileSpreadsheet,
-  Sliders,
-  PlayCircle,
-  LineChart,
-  FileUp,
-} from "lucide-react";
 
 type StudioSidebarProps = {
   drawerId: string;
@@ -36,7 +36,7 @@ export default function StudioSidebar({ drawerId }: StudioSidebarProps) {
         aria-label="close sidebar"
         className="drawer-overlay"
       ></label>
-      <ul className="menu bg-base-200 min-h-full w-80 p-4">
+      <ul className="menu bg-base-200 min-h-full w-56 p-4">
         <li className="menu-title">Navigation</li>
         <li>
           <Link

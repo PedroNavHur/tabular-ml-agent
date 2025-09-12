@@ -41,17 +41,17 @@ export default function TrainClient({ id }: { id: string }) {
   return (
     <div className="w-full max-w-6xl space-y-4">
       <h2 className="text-xl font-semibold">Training Plan</h2>
-      <div className="card bg-base-200">
-        <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+      <div>
+        <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-outline" href={`/studio/preprocess/${id}`}>
+            <Link className="btn btn-outline rounded-2xl" href={`/studio/preprocess/${id}`}>
               <ArrowBigLeft className="h-4 w-4" />
               <span>Preprocess</span>
             </Link>
           </div>
           <div className="flex gap-2">
             <button
-              className="btn"
+              className="btn rounded-2xl"
               disabled={!latestSummary || !!latestRunCfg || genOp.inFlight}
               onClick={async () => {
                 if (!latestSummary) return;
@@ -67,7 +67,7 @@ export default function TrainClient({ id }: { id: string }) {
               Generate Run Config
             </button>
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary rounded-2xl"
               disabled={!latestRunCfg || !latestSummary || startOp.inFlight}
               onClick={async () => {
                 if (startOp.inFlight) return;
@@ -81,12 +81,12 @@ export default function TrainClient({ id }: { id: string }) {
               Train Models
             </button>
             {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
-              <Link className="btn btn-primary" href={`/studio/results/${id}`}>
+              <Link className="btn btn-primary rounded-2xl" href={`/studio/results/${id}`}>
                 <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
               </Link>
             ) : (
-              <button className="btn btn-primary" disabled>
+              <button className="btn btn-primary rounded-2xl" disabled>
                 <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
               </button>

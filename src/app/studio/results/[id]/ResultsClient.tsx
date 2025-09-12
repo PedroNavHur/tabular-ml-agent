@@ -188,10 +188,10 @@ export default function ResultsClient({ id }: { id: string }) {
   return (
     <div className="w-full max-w-6xl space-y-4">
       <h2 className="text-xl font-semibold">Training Results</h2>
-      <div className="card bg-base-200">
-        <div className="card-body flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
+      <div>
+        <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-outline" href={`/studio/train/${id}`}>
+            <Link className="btn btn-outline rounded-2xl" href={`/studio/train/${id}`}>
               <ArrowBigLeft className="h-4 w-4" />
               <span>Train</span>
             </Link>

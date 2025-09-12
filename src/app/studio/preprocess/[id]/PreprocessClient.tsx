@@ -158,10 +158,9 @@ export default function PreprocessClient({ id }: { id: string }) {
         <div className="opacity-70">Dataset not found.</div>
       ) : (
         <>
-          <div className="card bg-base-200">
-            <div className="card-body gap-3">
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex gap-2">
+          <div>
+            <div className="flex items-center justify-between pt-2 gap-3">
+              <div className="flex gap-2">
                   <div
                     className="tooltip tooltip-right"
                     data-tip={
@@ -171,7 +170,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     }
                   >
                     <button
-                      className="btn btn-secondary"
+                      className="btn btn-secondary rounded-2xl"
                       disabled={!headers.length || !target || hasPending}
                       onClick={async () => {
                         if (!info) return;
@@ -216,7 +215,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     }
                   >
                     <button
-                      className="btn btn-secondary"
+                      className="btn btn-secondary rounded-2xl"
                       disabled={!headers.length || !target || !hasCompleted}
                       onClick={async () => {
                         if (!info) return;
@@ -242,13 +241,13 @@ export default function PreprocessClient({ id }: { id: string }) {
                 </div>
                 <div>
                   {!headers.length || !target ? (
-                    <button className="btn btn-primary" disabled>
+                    <button className="btn btn-primary rounded-2xl" disabled>
                       <span>Train</span>
                       <ArrowBigRight className="h-4 w-4" />
                     </button>
                   ) : (
                     <a
-                      className="btn btn-primary"
+                      className="btn btn-primary rounded-2xl"
                       href={`/studio/train/${String(datasetId)}`}
                     >
                       <span>Train</span>
@@ -256,7 +255,6 @@ export default function PreprocessClient({ id }: { id: string }) {
                     </a>
                   )}
                 </div>
-              </div>
             </div>
           </div>
 
