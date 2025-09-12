@@ -1,12 +1,12 @@
 "use client";
 import {
-    FileSpreadsheet,
-    FileUp,
-    Home,
-    LineChart,
-    PencilRuler,
-    PlayCircle,
-    Sliders,
+  FileSpreadsheet,
+  FileUp,
+  Home,
+  LineChart,
+  PencilRuler,
+  PlayCircle,
+  Sliders,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

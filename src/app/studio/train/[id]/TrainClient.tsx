@@ -44,7 +44,10 @@ export default function TrainClient({ id }: { id: string }) {
       <div>
         <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-outline rounded-2xl" href={`/studio/preprocess/${id}`}>
+            <Link
+              className="btn btn-outline rounded-2xl"
+              href={`/studio/preprocess/${id}`}
+            >
               <ArrowBigLeft className="h-4 w-4" />
               <span>Preprocess</span>
             </Link>
@@ -81,7 +84,10 @@ export default function TrainClient({ id }: { id: string }) {
               Train Models
             </button>
             {Array.isArray(trainedModels) && trainedModels.length > 0 ? (
-              <Link className="btn btn-primary rounded-2xl" href={`/studio/results/${id}`}>
+              <Link
+                className="btn btn-primary rounded-2xl"
+                href={`/studio/results/${id}`}
+              >
                 <span>Results</span>
                 <ArrowBigRight className="h-4 w-4" />
               </Link>

@@ -191,7 +191,10 @@ export default function ResultsClient({ id }: { id: string }) {
       <div>
         <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
           <div className="flex gap-2">
-            <Link className="btn btn-outline rounded-2xl" href={`/studio/train/${id}`}>
+            <Link
+              className="btn btn-outline rounded-2xl"
+              href={`/studio/train/${id}`}
+            >
               <ArrowBigLeft className="h-4 w-4" />
               <span>Train</span>
             </Link>

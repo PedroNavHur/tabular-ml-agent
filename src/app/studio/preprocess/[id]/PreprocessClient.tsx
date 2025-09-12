@@ -161,100 +161,100 @@ export default function PreprocessClient({ id }: { id: string }) {
           <div>
             <div className="flex items-center justify-between pt-2 gap-3">
               <div className="flex gap-2">
-                  <div
-                    className="tooltip tooltip-right"
-                    data-tip={
-                      hasPending
-                        ? "A preprocessing run is pending. Please wait until it completes."
+                <div
+                  className="tooltip tooltip-right"
+                  data-tip={
+                    hasPending
+                      ? "A preprocessing run is pending. Please wait until it completes."
+                      : undefined
+                  }
+                >
+                  <button
+                    className="btn btn-secondary rounded-2xl"
+                    disabled={!headers.length || !target || hasPending}
+                    onClick={async () => {
+                      if (!info) return;
+                      if (hasPending) {
+                        toast("A preprocess run is already in progress.");
+                        return;
+                      }
+                      try {
+                        await startPreprocess({
+                          datasetId: info._id as Id<"datasets">,
+                          params: {
+                            target,
+                            idColumn,
+                            taskType,
+                            missing,
+                            testSize: 0.2,
+                          },
+                        });
+                        toast.success("Preprocess started");
+                      } catch (e: unknown) {
+                        const msg =
+                          e instanceof Error
+                            ? e.message
+                            : "Failed to start preprocess";
+                        toast.error(msg);
+                      } finally {
+                        // no-op
+                      }
+                    }}
+                  >
+                    Preprocess
+                  </button>
+                </div>
+                <div
+                  className="tooltip"
+                  data-tip={
+                    !headers.length || !target
+                      ? "Load preview and choose a target."
+                      : !hasCompleted
+                        ? "Run preprocessing first."
                         : undefined
-                    }
+                  }
+                >
+                  <button
+                    className="btn btn-secondary rounded-2xl"
+                    disabled={!headers.length || !target || !hasCompleted}
+                    onClick={async () => {
+                      if (!info) return;
+                      try {
+                        await summarizeProfile({
+                          datasetId: info._id as Id<"datasets">,
+                        });
+                        toast.success("Profile summarized");
+                      } catch (e: unknown) {
+                        const msg =
+                          e instanceof Error
+                            ? e.message
+                            : "Failed to summarize profile";
+                        toast.error(msg);
+                      } finally {
+                        // no-op
+                      }
+                    }}
                   >
-                    <button
-                      className="btn btn-secondary rounded-2xl"
-                      disabled={!headers.length || !target || hasPending}
-                      onClick={async () => {
-                        if (!info) return;
-                        if (hasPending) {
-                          toast("A preprocess run is already in progress.");
-                          return;
-                        }
-                        try {
-                          await startPreprocess({
-                            datasetId: info._id as Id<"datasets">,
-                            params: {
-                              target,
-                              idColumn,
-                              taskType,
-                              missing,
-                              testSize: 0.2,
-                            },
-                          });
-                          toast.success("Preprocess started");
-                        } catch (e: unknown) {
-                          const msg =
-                            e instanceof Error
-                              ? e.message
-                              : "Failed to start preprocess";
-                          toast.error(msg);
-                        } finally {
-                          // no-op
-                        }
-                      }}
-                    >
-                      Preprocess
-                    </button>
-                  </div>
-                  <div
-                    className="tooltip"
-                    data-tip={
-                      !headers.length || !target
-                        ? "Load preview and choose a target."
-                        : !hasCompleted
-                          ? "Run preprocessing first."
-                          : undefined
-                    }
+                    Run Profiling
+                  </button>
+                </div>
+              </div>
+              <div>
+                {!headers.length || !target ? (
+                  <button className="btn btn-primary rounded-2xl" disabled>
+                    <span>Train</span>
+                    <ArrowBigRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <a
+                    className="btn btn-primary rounded-2xl"
+                    href={`/studio/train/${String(datasetId)}`}
                   >
-                    <button
-                      className="btn btn-secondary rounded-2xl"
-                      disabled={!headers.length || !target || !hasCompleted}
-                      onClick={async () => {
-                        if (!info) return;
-                        try {
-                          await summarizeProfile({
-                            datasetId: info._id as Id<"datasets">,
-                          });
-                          toast.success("Profile summarized");
-                        } catch (e: unknown) {
-                          const msg =
-                            e instanceof Error
-                              ? e.message
-                              : "Failed to summarize profile";
-                          toast.error(msg);
-                        } finally {
-                          // no-op
-                        }
-                      }}
-                    >
-                      Run Profiling
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  {!headers.length || !target ? (
-                    <button className="btn btn-primary rounded-2xl" disabled>
-                      <span>Train</span>
-                      <ArrowBigRight className="h-4 w-4" />
-                    </button>
-                  ) : (
-                    <a
-                      className="btn btn-primary rounded-2xl"
-                      href={`/studio/train/${String(datasetId)}`}
-                    >
-                      <span>Train</span>
-                      <ArrowBigRight className="h-4 w-4" />
-                    </a>
-                  )}
-                </div>
+                    <span>Train</span>
+                    <ArrowBigRight className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
