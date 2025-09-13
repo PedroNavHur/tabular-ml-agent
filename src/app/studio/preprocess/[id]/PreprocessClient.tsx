@@ -303,10 +303,10 @@ export default function PreprocessClient({ id }: { id: string }) {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label className="form-control w-full">
-                  <div className="label">
+                <div className="form-control w-full flex flex-col gap-2">
+                  <label className="label p-0">
                     <span className="label-text">Target column</span>
-                  </div>
+                  </label>
                   <select
                     className="select select-bordered"
                     value={target ?? ""}
@@ -323,12 +323,12 @@ export default function PreprocessClient({ id }: { id: string }) {
                       </option>
                     ))}
                   </select>
-                </label>
+                </div>
 
-                <label className="form-control w-full">
-                  <div className="label">
+                <div className="form-control w-full flex flex-col gap-2">
+                  <label className="label p-0">
                     <span className="label-text">ID column (optional)</span>
-                  </div>
+                  </label>
                   <select
                     className="select select-bordered"
                     value={idColumn ?? ""}
@@ -341,13 +341,13 @@ export default function PreprocessClient({ id }: { id: string }) {
                       </option>
                     ))}
                   </select>
-                </label>
+                </div>
 
-                <div className="form-control">
-                  <div className="label">
+                <div className="form-control flex flex-col gap-2">
+                  <label className="label p-0">
                     <span className="label-text">Task type</span>
-                  </div>
-                  <div className="join">
+                  </label>
+                  <div className="join join-horizontal self-start">
                     <input
                       type="radio"
                       name="task"
@@ -375,10 +375,10 @@ export default function PreprocessClient({ id }: { id: string }) {
                   </div>
                 </div>
 
-                <label className="form-control">
-                  <div className="label">
+                <div className="form-control flex flex-col gap-2">
+                  <label className="label p-0">
                     <span className="label-text">Missing values</span>
-                  </div>
+                  </label>
                   <select
                     className="select select-bordered"
                     value={missing}
@@ -390,7 +390,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                     <option value="median">Impute median</option>
                     <option value="most_frequent">Impute most frequent</option>
                   </select>
-                </label>
+                </div>
 
                 {/* Removed test split control; using default 20% split server-side */}
               </div>

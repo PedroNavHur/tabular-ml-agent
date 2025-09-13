@@ -140,6 +140,80 @@ export default function TestClient({ id }: { id: string }) {
     return typeof u === "number" && Number.isFinite(u) ? u : undefined;
   }
 
+  function renderResult(res: unknown) {
+    const rec = asRecord(res);
+    const preds = rec["predictions"] as unknown;
+    const prob = rec["probabilities"] as unknown;
+    if (Array.isArray(preds)) {
+      // Single prediction
+      if (preds.length === 1) {
+        const val = preds[0];
+        const isClassification = Array.isArray(prob) && Array.isArray((prob as unknown[])[0] as unknown[]);
+        const prows = isClassification ? ((prob as unknown[])[0] as unknown[]) : null;
+        return (
+          <div className="space-y-4">
+            <div className="stats shadow w-full">
+              <div className="stat">
+                <div className="stat-title">Prediction</div>
+                <div className="stat-value text-primary">
+                  {typeof val === "number"
+                    ? isClassification
+                      ? String(val)
+                      : val.toFixed(4)
+                    : String(val)}
+                </div>
+              </div>
+            </div>
+            {Array.isArray(prows) && prows.length > 0 ? (
+              <div>
+                <div className="mb-2 text-sm opacity-80">Class probabilities</div>
+                <div className="flex flex-col gap-2">
+                  {(prows as number[]).map((p, i) => {
+                    const pct = Math.max(0, Math.min(1, Number(p))) * 100;
+                    return (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="badge w-14 justify-center">#{i}</span>
+                        <progress className="progress progress-accent w-64" value={pct} max={100} />
+                        <span className="text-xs font-mono">{pct.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        );
+      }
+      // Multiple predictions -> simple table
+      return (
+        <div className="overflow-x-auto">
+          <table className="table table-zebra">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Prediction</th>
+              </tr>
+            </thead>
+            <tbody>
+              {preds.map((v, i) => (
+                <tr key={i}>
+                  <td className="w-10">{i + 1}</td>
+                  <td className="font-mono">{typeof v === "number" ? v.toFixed?.(4) ?? String(v) : String(v)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    // Fallback: render JSON
+    return (
+      <div className="text-xs opacity-90">
+        <JsonEditor data={res as JsonData} viewOnly indent={2} rootFontSize={"0.6rem"} />
+      </div>
+    );
+  }
+
   const dtypeByCol = useMemo(() => {
     const summaryRec = asRecord(latestCompletedRun?.summary as unknown);
     const dtypesRec = asRecord(summaryRec["dtypes"]);
@@ -202,13 +276,24 @@ export default function TestClient({ id }: { id: string }) {
 
       <div className="card bg-base-200">
         <div className="card-body gap-3">
-          <div className="flex flex-col md:flex-row gap-3 md:items-end">
-            <label className="form-control w-full md:max-w-xs">
-              <div className="label">
+          <div className="flex items-center justify-between">
+            <h3 className="card-title m-0">Model & Samples</h3>
+            <button
+              className="btn btn-outline rounded-2xl"
+              onClick={loadSamples}
+              type="button"
+              disabled={samplesOp.inFlight}
+            >
+              Load samples
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:items-end">
+            <div className="form-control w-full flex flex-col gap-2">
+              <label className="label p-0">
                 <span className="label-text">Choose model</span>
-              </div>
+              </label>
               <select
-                className="select select-bordered"
+                className="select select-bordered h-12"
                 value={selectedModel ?? ""}
                 onChange={e => setSelectedModel(e.target.value || null)}
               >
@@ -225,51 +310,46 @@ export default function TestClient({ id }: { id: string }) {
                     ))
                   : null}
               </select>
-            </label>
+            </div>
 
-            <div className="flex gap-2 items-end">
-              <button
-                className="btn btn-outline"
-                onClick={loadSamples}
-                type="button"
-                disabled={samplesOp.inFlight}
-              >
-                Load samples
-              </button>
-              <label className="form-control w-full md:max-w-xs">
-                <div className="label">
-                  <span className="label-text">Prefill from sample</span>
-                </div>
-                <select
-                  className="select select-bordered"
-                  value={sampleIndex === "" ? "" : String(sampleIndex)}
-                  onChange={e => {
-                    const v = e.target.value;
-                    setSampleIndex(v === "" ? "" : Number(v));
-                    if (v !== "") {
-                      const idx = Number(v);
-                      const rec = samples[idx];
-                      if (rec) {
-                        const next: Record<string, string> = { ...form };
-                        featureCols.forEach((c: string) => {
-                          if (rec[c] !== undefined) next[c] = String(rec[c]);
-                        });
-                        setForm(next);
-                      }
-                    }
-                  }}
-                >
-                  <option value="">Select row</option>
-                  {samples.map((_, i) => (
-                    <option key={i} value={String(i)}>
-                      Row {i + 1}
-                    </option>
-                  ))}
-                </select>
+            <div className="form-control w-full flex flex-col gap-2">
+              <label className="label p-0">
+                <span className="label-text">Prefill from sample</span>
               </label>
+              <select
+                className="select select-bordered h-12"
+                value={sampleIndex === "" ? "" : String(sampleIndex)}
+                onChange={e => {
+                  const v = e.target.value;
+                  setSampleIndex(v === "" ? "" : Number(v));
+                  if (v !== "") {
+                    const idx = Number(v);
+                    const rec = samples[idx];
+                    if (rec) {
+                      const next: Record<string, string> = { ...form };
+                      featureCols.forEach((c: string) => {
+                        if (rec[c] !== undefined) next[c] = String(rec[c]);
+                      });
+                      setForm(next);
+                    }
+                  }
+                }}
+              >
+                <option value="">Select row</option>
+                {samples.map((_, i) => (
+                  <option key={i} value={String(i)}>
+                    Row {i + 1}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+        </div>
+      </div>
 
+      <div className="card bg-base-200">
+        <div className="card-body gap-3">
+          <h3 className="card-title">Feature Inputs</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {featureCols.map((c: string) => {
               const stats = asRecord(describe?.[c]);
@@ -277,13 +357,13 @@ export default function TestClient({ id }: { id: string }) {
               const min = isNumeric ? asNumber(stats["min"]) : undefined;
               const max = isNumeric ? asNumber(stats["max"]) : undefined;
               return (
-                <label key={c} className="form-control">
-                  <div className="label">
+                <div key={c} className="form-control flex flex-col gap-2">
+                  <label className="label p-0">
                     <span className="label-text">{c}</span>
                     {isNumeric ? (
                       <span className="label-text-alt opacity-70">{`Min: ${min ?? "?"}  Max: ${max ?? "?"}`}</span>
                     ) : null}
-                  </div>
+                  </label>
                   <input
                     type={isNumeric ? "number" : "text"}
                     className="input input-bordered"
@@ -294,14 +374,14 @@ export default function TestClient({ id }: { id: string }) {
                       setForm(f => ({ ...f, [c]: e.target.value }))
                     }
                   />
-                </label>
+                </div>
               );
             })}
           </div>
 
           <div className="card-actions justify-end">
             <button
-              className="btn btn-primary"
+              className="btn btn-primary rounded-2xl"
               disabled={
                 !selectedModel ||
                 !Array.isArray(models) ||
@@ -335,14 +415,7 @@ export default function TestClient({ id }: { id: string }) {
         <div className="card-body">
           <h3 className="card-title">Result</h3>
           {result ? (
-            <div className="text-xs opacity-90">
-              <JsonEditor
-                data={result as JsonData}
-                viewOnly
-                indent={2}
-                rootFontSize={"0.6rem"}
-              />
-            </div>
+            renderResult(result)
           ) : (
             <div className="opacity-70">No prediction yet.</div>
           )}
