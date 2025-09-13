@@ -1,5 +1,6 @@
 import StudioNavbar from "@/components/StudioNavbar";
 import StudioSidebar from "@/components/StudioSidebar";
+import StudioFooter from "@/components/StudioFooter";
 
 export default function StudioLayout({
   children,
@@ -15,6 +16,7 @@ export default function StudioLayout({
         <main className="flex-1 flex items-start justify-center p-6">
           {children}
         </main>
+        <StudioFooter />
       </div>
 
       <StudioSidebar drawerId="studio-drawer" />

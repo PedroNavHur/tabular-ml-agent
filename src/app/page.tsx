@@ -1,21 +1,21 @@
 "use client";
 import { motion } from "motion/react";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Navbar */}
       <div className="navbar bg-base-100 shadow-sm">
-        <div className="flex-1">
-          <a className="btn btn-ghost text-xl text-accent">FirstModel</a>
-        </div>
-        <div className="flex-none gap-2">
-          <a className="btn btn-ghost" href="/studio">
-            Studio
-          </a>
-          <a className="btn btn-primary" href="/studio">
-            Get Started
-          </a>
+        <div className="container mx-auto max-w-6xl px-4 flex w-full items-center">
+          <div className="flex-1">
+            <a className="btn btn-ghost text-xl text-accent">FirstModel</a>
+          </div>
+          <div className="flex-none gap-2">
+            <a className="btn btn-ghost" href="/studio">
+              Studio
+            </a>
+          </div>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default function Home() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Start in Studio
+                Try it Out
               </motion.a>
               <motion.a
                 className="btn btn-outline"
@@ -131,7 +131,7 @@ export default function Home() {
       {/* Features */}
       <section
         id="features"
-        className="container mx-auto max-w-6xl px-4 md:px-6 py-10"
+        className="container mx-auto max-w-6xl px-4 md:px-6 py-16 md:py-20"
       >
         <div className="text-center mb-6">
           <div className="badge badge-outline mb-3">Features</div>
@@ -139,7 +139,7 @@ export default function Home() {
             Latest advanced tooling
           </h2>
           <p className="opacity-70">
-            Everything you need for tabular ML workflows
+            Everything you need for training your first model.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -159,7 +159,7 @@ export default function Home() {
               </p>
               <div className="card-actions justify-end">
                 <a className="btn btn-sm" href="/studio">
-                  Open Studio
+                  Upload CSV Now
                 </a>
               </div>
             </div>
@@ -174,13 +174,13 @@ export default function Home() {
             <div className="card-body">
               <h3 className="card-title">Plan & Train</h3>
               <p className="opacity-80">
-                The assistant proposes a run config of classical sklearn models.
+                The agent proposes a run config of classical sklearn models.
                 We train in Modal, serialize with skops, and store artifacts in
                 Convex.
               </p>
               <div className="card-actions justify-end">
                 <a className="btn btn-sm" href="/studio">
-                  Generate Plan
+                  Train Now
                 </a>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function Home() {
               </p>
               <div className="card-actions justify-end">
                 <a className="btn btn-sm" href="/studio">
-                  See Results
+                  Test it Now
                 </a>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function Home() {
       </section>
 
       {/* CTA banner */}
-      <section className="container mx-auto max-w-6xl px-4 md:px-6 py-10">
+      <section className="container mx-auto max-w-6xl px-4 md:px-6 py-16 md:py-20">
         <motion.div
           className="hero rounded-box bg-base-300"
           initial={{ opacity: 0, y: 20 }}
@@ -242,64 +242,8 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Stats */}
-      <section className="container mx-auto max-w-6xl px-4 md:px-6 py-8">
-        <motion.div
-          className="stats stats-vertical md:stats-horizontal shadow w-full"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <div className="stat">
-            <div className="stat-title">Models Trained</div>
-            <div className="stat-value">50+</div>
-            <div className="stat-desc">Across classification & regression</div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Avg. Setup Time</div>
-            <div className="stat-value">&lt; 5m</div>
-            <div className="stat-desc">From upload to first results</div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Reproducible</div>
-            <div className="stat-value">100%</div>
-            <div className="stat-desc">Skops artifacts + manifests</div>
-          </div>
-        </motion.div>
-      </section>
-
       {/* Footer */}
-      <footer className="footer bg-base-200 p-10">
-        <aside>
-          <a className="btn btn-ghost text-xl">FirstModel</a>
-          <p className="opacity-70 max-w-sm">
-            AutoML for tabular data. Built on Next.js, Convex, Modal and
-            scikit‑learn.
-          </p>
-        </aside>
-        <nav>
-          <h6 className="footer-title">Product</h6>
-          <a className="link link-hover" href="/studio">
-            Studio
-          </a>
-          <a className="link link-hover" href="#features">
-            Features
-          </a>
-        </nav>
-        <nav>
-          <h6 className="footer-title">Resources</h6>
-          <a className="link link-hover" href="https://scikit-learn.org/">
-            scikit‑learn
-          </a>
-          <a className="link link-hover" href="https://www.convex.dev/">
-            Convex
-          </a>
-          <a className="link link-hover" href="https://modal.com/">
-            Modal
-          </a>
-        </nav>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
