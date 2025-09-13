@@ -81,12 +81,12 @@ export default function ResultsClient({ id }: { id: string }) {
       const f1 = n("f1");
       return (
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="badge badge-soft badge-primary badge-xs w-12 justify-center">
               BA
             </span>
             <progress
-              className="progress progress-primary w-64"
+              className="progress progress-primary w-72"
               value={val}
               max={100}
             />
@@ -94,14 +94,14 @@ export default function ResultsClient({ id }: { id: string }) {
               {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mr-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mr-5">
             {acc != null ? (
               <div className="flex items-center gap-2">
                 <span className="badge badge-soft badge-xs w-12 justify-center">
                   Acc
                 </span>
                 <progress
-                  className="progress progress-secondary w-14"
+                  className="progress progress-secondary w-16"
                   value={Math.max(0, Math.min(1, acc)) * 100}
                   max={100}
                 />
@@ -116,7 +116,7 @@ export default function ResultsClient({ id }: { id: string }) {
                   Pre
                 </span>
                 <progress
-                  className="progress progress-secondary w-14"
+                  className="progress progress-secondary w-16"
                   value={Math.max(0, Math.min(1, prec)) * 100}
                   max={100}
                 />
@@ -131,7 +131,7 @@ export default function ResultsClient({ id }: { id: string }) {
                   Rec
                 </span>
                 <progress
-                  className="progress progress-secondary w-14"
+                  className="progress progress-secondary w-16"
                   value={Math.max(0, Math.min(1, rec)) * 100}
                   max={100}
                 />
@@ -146,7 +146,7 @@ export default function ResultsClient({ id }: { id: string }) {
                   F1
                 </span>
                 <progress
-                  className="progress progress-secondary w-14"
+                  className="progress progress-secondary w-16"
                   value={Math.max(0, Math.min(1, f1)) * 100}
                   max={100}
                 />

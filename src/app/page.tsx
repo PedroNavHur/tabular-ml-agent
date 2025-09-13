@@ -21,46 +21,77 @@ export default function Home() {
 
       {/* Hero */}
       <section className="hero min-h-[calc(100dvh-4rem)] bg-base-200">
-        <div className="hero-content text-center">
+        <div className="hero-content flex-col items-center gap-8">
+          {/* Mobile-only badge above image */}
           <motion.div
-            className="max-w-3xl"
-            initial={{ opacity: 0, y: 20 }}
+            className="badge badge-outline mb-4 md:hidden"
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ delay: 0.1, duration: 0.4 }}
           >
+            An Autonomous ML Agent
+          </motion.div>
+          {/* Desktop-only badge above title+image row */}
+          <motion.div
+            className="badge badge-outline mb-2 hidden md:inline-flex"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          >
+            An Autonomous ML Agent
+          </motion.div>
+          {/* Side-by-side row on desktop: image and title */}
+          <div className="w-full md:max-w-6xl md:flex md:flex-row md:items-center md:gap-10">
+            {/* Image first on mobile, second on desktop */}
             <motion.div
-              className="badge badge-outline mb-4"
-              initial={{ opacity: 0, y: 10 }}
+              className="w-full md:max-w-xl md:order-2"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
             >
-              An Autonomous ML Agent
+              <img
+                src="/demo.png"
+                alt="FirstModel demo screenshot"
+                className="w-full rounded-2xl shadow border border-base-300 -rotate-2"
+              />
             </motion.div>
-            <motion.h1
-              className="text-4xl md:text-6xl font-bold"
-              initial={{ opacity: 0, y: 12 }}
+            {/* Title */}
+            <motion.div
+              className="max-w-3xl text-center md:text-left md:order-1"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              From dataset to <span className="text-accent">first model</span>{" "}
-              in{" "}
-              <span className="underline decoration-wavy decoration-6 underline-offset-8 decoration-accent">
-                minutes
-              </span>
-            </motion.h1>
-            <motion.p
-              className="py-6 opacity-80"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
+              <motion.h1
+                className="text-4xl md:text-6xl font-bold -rotate-2 inline-block pt-4 md:pt-0 md:pl-4"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                From dataset to <span className="text-accent">first model</span>{" "}
+                in{" "}
+                <span className="underline decoration-wavy decoration-6 underline-offset-8 decoration-accent">
+                  minutes
+                </span>
+              </motion.h1>
+            </motion.div>
+          </div>
+
+          {/* Centered below: text and buttons */}
+          <motion.div
+            className="max-w-3xl text-center"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <p className="opacity-80">
               Start with a CSV, and FirstModel takes care of the rest —
               profiling your data, suggesting a training plan, and running
               scikit-learn models in the cloud. In just minutes, you can test
               predictions from your first model.
-            </motion.p>
+            </p>
             <motion.div
-              className="flex items-center justify-center gap-3 flex-wrap"
+              className="mt-4 flex items-center justify-center gap-3 flex-wrap"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
