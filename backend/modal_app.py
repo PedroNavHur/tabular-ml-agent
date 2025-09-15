@@ -33,11 +33,18 @@ app = modal.App("tabular-ml-agent-backend", image=image)
 convex_env = modal.Secret.from_name("tabular-ml-agent-backend")
 
 
+def _log(msg: str) -> None:
+    # Simple stdout logger for Modal dashboard
+    print(f"[modal] {msg}", flush=True)
+
+
 def _http_post(url: str, payload: Dict[str, Any], secret: str) -> None:
     import requests
 
     headers = {"x-webhook-secret": secret, "content-type": "application/json"}
+    _log(f"HTTP POST -> {url} | keys={list(payload.keys())}")
     resp = requests.post(url, headers=headers, data=json.dumps(payload))
+    _log(f"HTTP POST <- {resp.status_code}")
     resp.raise_for_status()
 
 
@@ -45,7 +52,9 @@ def _http_post_json(url: str, json_payload: Dict[str, Any], secret: str) -> Dict
     import requests
 
     headers = {"x-webhook-secret": secret}
+    _log(f"HTTP POST (json) -> {url} | keys={list(json_payload.keys())}")
     resp = requests.post(url, headers=headers, json=json_payload)
+    _log(f"HTTP POST (json) <- {resp.status_code}")
     resp.raise_for_status()
     return resp.json()
 
@@ -53,9 +62,12 @@ def _http_post_json(url: str, json_payload: Dict[str, Any], secret: str) -> Dict
 def _download_text(url: str) -> str:
     import requests
 
+    _log(f"Downloading text from {url}")
     r = requests.get(url)
     r.raise_for_status()
-    return r.text
+    txt = r.text
+    _log(f"Downloaded {len(txt)} bytes")
+    return txt
 
 
 def preprocess_csv(
@@ -67,8 +79,10 @@ def preprocess_csv(
     import pandas as pd
     from pandas.api.types import is_numeric_dtype
 
+    _log("preprocess_csv: start read_csv")
     df = pd.read_csv(io.StringIO(csv_text))
     original_shape = df.shape
+    _log(f"preprocess_csv: loaded df shape={original_shape}")
 
     applied: Dict[str, Any] = {"dropped_columns": [], "imputations": {}}
 
@@ -126,6 +140,11 @@ def preprocess_csv(
     # Produce processed CSV bytes
     out_buf = io.StringIO()
     df.to_csv(out_buf, index=False)
+    _log(
+        "preprocess_csv: done | shape_after="
+        + str(df.shape)
+        + f", columns={len(df.columns)}"
+    )
     processed_csv = out_buf.getvalue().encode("utf-8")
     return {"processed_csv": processed_csv, "summary": summary}
 
@@ -182,6 +201,7 @@ def fastapi_app():
     async def preprocess(req: PreprocessRequest):
         secret = req.secret
         try:
+            _log(f"/preprocess: runId={req.runId} datasetId={req.datasetId}")
             # 1) Mark running
             _http_post(req.callbacks.running, {"runId": req.runId}, secret)
 
@@ -189,6 +209,7 @@ def fastapi_app():
             convex_url = os.environ.get("CONVEX_URL") or os.environ.get("NEXT_PUBLIC_CONVEX_URL")
             if not convex_url:
                 raise HTTPException(status_code=500, detail="Missing CONVEX_URL/NEXT_PUBLIC_CONVEX_URL")
+            _log("/preprocess: requesting dataset download URL from Convex")
             dataset_url_resp = _http_post_json(
                 f"{convex_url}/dataset/download-url",
                 {"datasetId": req.datasetId},
@@ -199,9 +220,11 @@ def fastapi_app():
                 raise HTTPException(status_code=500, detail="Failed to get original dataset URL")
 
             # 3) Download CSV
+            _log(f"/preprocess: downloading original CSV from {original_url}")
             csv_text = _download_text(original_url)
 
             # 4) Preprocess
+            _log("/preprocess: running preprocess_csv")
             processed = preprocess_csv(
                 csv_text,
                 target=req.params.target,
@@ -210,6 +233,7 @@ def fastapi_app():
             )
 
             # 5) Upload processed CSV to Convex storage
+            _log("/preprocess: requesting upload URL from Convex")
             upload_resp = _http_post_json(req.callbacks.uploadUrl, {}, secret)
             upload_url = upload_resp.get("url")
             if not upload_url:
@@ -219,6 +243,7 @@ def fastapi_app():
 
             processed_filename = f"{req.datasetId}-processed.csv"
             processed_csv = processed["processed_csv"] if isinstance(processed, dict) else processed["processed_csv"]
+            _log("/preprocess: uploading processed CSV")
             r = requests.post(
                 upload_url,
                 headers={"content-type": "text/csv"},
@@ -228,9 +253,11 @@ def fastapi_app():
             storage_id = r.json().get("storageId")
             if not storage_id:
                 raise HTTPException(status_code=500, detail="Upload response missing storageId")
+            _log(f"/preprocess: uploaded processed CSV. storageId={storage_id}")
 
             # 6) Mark complete with summary
             summary = processed.get("summary", {}) if isinstance(processed, dict) else {}
+            _log("/preprocess: marking complete + saving profile")
             _http_post(
                 req.callbacks.complete,
                 {
@@ -281,8 +308,38 @@ def training_app():
         secret: str
         callbacks: Callbacks
 
+    def _normalize_model_name(name: str, task_type: str) -> str:
+        n = (name or "").strip()
+        low = n.lower()
+        # Generic shorthands
+        if low in {"randomforest", "rf"}:
+            return "RandomForestRegressor" if task_type == "regression" else "RandomForestClassifier"
+        if low in {"gradientboosting", "gb", "gboost"}:
+            return (
+                "GradientBoostingRegressor" if task_type == "regression" else "GradientBoostingClassifier"
+            )
+        if low in {"svm", "svr", "svc"}:
+            return "SVR" if task_type == "regression" else "SVC"
+        if low in {"logreg", "logistic", "logisticregression"}:
+            return "LogisticRegression"
+        if low in {"linear", "linearregression"}:
+            return "LinearRegression"
+        # Structured aliases from our run config generator
+        if low in {"rf_classifier", "random_forest_classifier"}:
+            return "RandomForestClassifier"
+        if low in {"rf_regressor", "random_forest_regressor"}:
+            return "RandomForestRegressor"
+        if low in {"gb_classifier", "gradient_boosting_classifier"}:
+            return "GradientBoostingClassifier"
+        if low in {"gb_regressor", "gradient_boosting_regressor"}:
+            return "GradientBoostingRegressor"
+        if low in {"log_reg_l2", "log_reg", "logistic_l2", "logreg_l2"}:
+            return "LogisticRegression"
+        return n
+
     @web_app.post("/train")
     async def train(req: TrainRequest):
+        _log("/train: received request")
         import pandas as pd
         import requests
         from io import BytesIO
@@ -297,9 +354,11 @@ def training_app():
         )
         from skops.io import dumps as skops_dumps
 
+        _log(f"/train: downloading CSV from {req.csvUrl}")
         r = requests.get(req.csvUrl)
         r.raise_for_status()
         df = pd.read_csv(BytesIO(r.content))
+        _log(f"/train: df shape={df.shape}")
 
         cfg = req.cfg or {}
         target = cfg.get("target")
@@ -310,10 +369,12 @@ def training_app():
         models = cfg.get("models", [])
         cv_cfg = cfg.get("cv", {"cv_folds": 5, "shuffle": True, "random_state": 42})
 
+        _log(f"/train: task_type={task_type} | models={len(models)} | target={target}")
         X = df.drop(columns=[target])
         y = df[target]
         num_cols = X.select_dtypes(include=["number"]).columns.tolist()
         cat_cols = [c for c in X.columns if c not in num_cols]
+        _log(f"/train: features num={len(num_cols)} cat={len(cat_cols)}")
 
         scaler_name = preprocessing.get("scaler", "none")
         scaler = None
@@ -357,10 +418,15 @@ def training_app():
             metric_name = "balanced_accuracy"
 
         results = []
+        _log(f"/train: incoming model names={[m.get('name') for m in models]}")
         for m in models:
-            name = m.get("name")
+            raw_name = m.get("name")
+            name = _normalize_model_name(raw_name, task_type)
+            if raw_name != name:
+                _log(f"/train: normalized model name '{raw_name}' -> '{name}'")
             params = m.get("params", {})
             if name not in registry:
+                _log(f"/train: skipping model '{name}' (not in registry)")
                 continue
             ModelCls = registry[name]
             try:
@@ -369,73 +435,82 @@ def training_app():
                     params.setdefault("random_state", 42)
             except Exception:
                 pass
-            model = ModelCls(**params)
-            pipe = Pipeline(steps=[("prep", preprocessor), ("model", model)])
-            cv_folds = int(cv_cfg.get("cv_folds", 5))
-            if task_type == "regression":
-                scores = cross_val_score(
-                    pipe, X, y, cv=cv_folds, scoring=scorer
-                )
-                mean_score = float(scores.mean())
-                std_score = float(scores.std())
-                extra_metrics: dict[str, float] = {}
-            else:
-                # Compute multiple classification metrics via cross_validate
-                scoring = {
-                    "balanced_accuracy": "balanced_accuracy",
-                    "accuracy": "accuracy",
-                    "precision": "precision_macro",
-                    "recall": "recall_macro",
-                    "f1": "f1_macro",
-                }
-                cvres = cross_validate(
-                    pipe,
-                    X,
-                    y,
-                    cv=cv_folds,
-                    scoring=scoring,
-                    n_jobs=None,
-                    return_estimator=False,
-                )
-                ba = cvres.get("test_balanced_accuracy")
-                mean_score = float((ba.mean() if ba is not None else 0.0))
-                std_score = float((ba.std() if ba is not None else 0.0))
-                extra_metrics = {
-                    "accuracy": float(cvres["test_accuracy"].mean()),
-                    "accuracy_std": float(cvres["test_accuracy"].std()),
-                    "precision": float(cvres["test_precision"].mean()),
-                    "precision_std": float(cvres["test_precision"].std()),
-                    "recall": float(cvres["test_recall"].mean()),
-                    "recall_std": float(cvres["test_recall"].std()),
-                    "f1": float(cvres["test_f1"].mean()),
-                    "f1_std": float(cvres["test_f1"].std()),
-                }
-            pipe.fit(X, y)
             try:
-                blob = skops_dumps(pipe)
-            except Exception:
-                blob = None
-            upload_info = _http_post_json(req.callbacks.uploadUrl, {}, req.secret)
-            upload_url = upload_info.get("url")
-            if not upload_url:
-                raise HTTPException(status_code=500, detail="Failed to get upload URL")
-            ur = requests.post(upload_url, headers={"content-type": "application/octet-stream"}, data=blob)
-            ur.raise_for_status()
-            storage_id = ur.json().get("storageId")
-            metrics = {metric_name: mean_score, f"{metric_name}_std": std_score}
-            # Include additional classification metrics if present
-            if task_type != "regression":
-                metrics.update(extra_metrics)
-            if req.callbacks.saveModel:
-                _http_post(req.callbacks.saveModel, {
-                    "datasetId": req.datasetId,
-                    "runCfgId": req.runCfgId,
-                    "modelName": name,
-                    "storageId": storage_id,
-                    "metrics": metrics,
-                }, req.secret)
-            results.append({"model": name, "storageId": storage_id, "metrics": metrics})
-
+                model = ModelCls(**params)
+                pipe = Pipeline(steps=[("prep", preprocessor), ("model", model)])
+                cv_folds = int(cv_cfg.get("cv_folds", 5))
+                if task_type == "regression":
+                    scores = cross_val_score(
+                        pipe, X, y, cv=cv_folds, scoring=scorer
+                    )
+                    mean_score = float(scores.mean())
+                    std_score = float(scores.std())
+                    extra_metrics: dict[str, float] = {}
+                else:
+                    # Compute multiple classification metrics via cross_validate
+                    scoring = {
+                        "balanced_accuracy": "balanced_accuracy",
+                        "accuracy": "accuracy",
+                        "precision": "precision_macro",
+                        "recall": "recall_macro",
+                        "f1": "f1_macro",
+                    }
+                    cvres = cross_validate(
+                        pipe,
+                        X,
+                        y,
+                        cv=cv_folds,
+                        scoring=scoring,
+                        n_jobs=None,
+                        return_estimator=False,
+                    )
+                    ba = cvres.get("test_balanced_accuracy")
+                    mean_score = float((ba.mean() if ba is not None else 0.0))
+                    std_score = float((ba.std() if ba is not None else 0.0))
+                    extra_metrics = {
+                        "accuracy": float(cvres["test_accuracy"].mean()),
+                        "accuracy_std": float(cvres["test_accuracy"].std()),
+                        "precision": float(cvres["test_precision"].mean()),
+                        "precision_std": float(cvres["test_precision"].std()),
+                        "recall": float(cvres["test_recall"].mean()),
+                        "recall_std": float(cvres["test_recall"].std()),
+                        "f1": float(cvres["test_f1"].mean()),
+                        "f1_std": float(cvres["test_f1"].std()),
+                    }
+                _log(f"/train: [{name}] fitting pipeline")
+                pipe.fit(X, y)
+                try:
+                    blob = skops_dumps(pipe)
+                except Exception:
+                    blob = None
+                _log(f"[{name}] Requesting upload URL from Convex")
+                upload_info = _http_post_json(req.callbacks.uploadUrl, {}, req.secret)
+                upload_url = upload_info.get("url")
+                if not upload_url:
+                    raise HTTPException(status_code=500, detail="Failed to get upload URL")
+                _log(f"[{name}] Uploading model bytes to storage (skops len={0 if blob is None else len(blob)})")
+                ur = requests.post(upload_url, headers={"content-type": "application/octet-stream"}, data=blob)
+                ur.raise_for_status()
+                storage_id = ur.json().get("storageId")
+                _log(f"[{name}] Uploaded model. storageId={storage_id}")
+                metrics = {metric_name: mean_score, f"{metric_name}_std": std_score}
+                # Include additional classification metrics if present
+                if task_type != "regression":
+                    metrics.update(extra_metrics)
+                if req.callbacks.saveModel:
+                    _log(f"[{name}] Saving model to Convex with metrics keys={list(metrics.keys())}")
+                    _http_post(req.callbacks.saveModel, {
+                        "datasetId": req.datasetId,
+                        "runCfgId": req.runCfgId,
+                        "modelName": name,
+                        "storageId": storage_id,
+                        "metrics": metrics,
+                    }, req.secret)
+                results.append({"model": name, "storageId": storage_id, "metrics": metrics})
+            except Exception as e:
+                _log(f"/train: [{name}] failed: {e}")
+                continue
+        _log(f"Training complete. Saved {len(results)} models to Convex")
         return {"ok": True, "results": results}
 
     return web_app
@@ -455,11 +530,13 @@ def predict_app():
 
     @web_app.post("/predict")
     async def predict(req: PredictRequest):
+        _log("/predict: received request")
         import requests
         import pandas as pd
         from skops.io import loads as skops_loads, get_untrusted_types
         import numpy as np  # noqa: F401
 
+        _log(f"/predict: downloading model from {req.modelUrl}")
         r = requests.get(req.modelUrl)
         r.raise_for_status()
         try:
@@ -478,25 +555,31 @@ def predict_app():
         trusted = list({*trusted, *extra})
         # Load with explicit allow-list
         try:
+            _log("/predict: loading model via skops")
             model = skops_loads(r.content, trusted=trusted)
         except Exception as e:
             # Optional escape hatch for MVP: allow fully trusted load if explicitly enabled
             if os.environ.get("ALLOW_UNTRUSTED_MODELS") == "1":
+                _log("/predict: loading with trusted=True due to ALLOW_UNTRUSTED_MODELS=1")
                 model = skops_loads(r.content, trusted=True)
             else:
                 raise HTTPException(status_code=500, detail=f"model load failed: {e}")
         X_list = req.X if isinstance(req.X, list) else [req.X]
         df = pd.DataFrame(X_list)
+        _log(f"/predict: dataframe shape={df.shape}")
         try:
+            _log("/predict: calling predict()")
             y_pred = model.predict(df).tolist()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"predict failed: {e}")
         proba = None
         if hasattr(model, "predict_proba"):
             try:
+                _log("/predict: calling predict_proba()")
                 proba = getattr(model, "predict_proba")(df).tolist()
             except Exception:
                 proba = None
+        _log(f"/predict: done | preds={len(y_pred)} proba={'yes' if proba is not None else 'no'}")
         return {"predictions": y_pred, "probabilities": proba}
 
     return web_app
