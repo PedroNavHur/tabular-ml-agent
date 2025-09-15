@@ -1,6 +1,8 @@
 "use client";
 import { motion } from "motion/react";
 import SiteFooter from "@/components/SiteFooter";
+import Image from "next/image";
+import demoImg from "../../public/demo.png";
 
 export default function Home() {
   return (
@@ -49,10 +51,11 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
             >
-              <img
-                src="/demo.png"
+              <Image
+                src={demoImg}
                 alt="FirstModel demo screenshot"
                 className="w-full rounded-2xl shadow border border-base-300 -rotate-2"
+                priority
               />
             </motion.div>
             {/* Title */}
