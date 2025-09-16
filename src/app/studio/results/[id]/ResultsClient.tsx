@@ -86,7 +86,7 @@ export default function ResultsClient({ id }: { id: string }) {
               BA
             </span>
             <progress
-              className="progress progress-primary w-84"
+              className="progress progress-primary w-66 xl:w-84"
               value={val}
               max={100}
             />
