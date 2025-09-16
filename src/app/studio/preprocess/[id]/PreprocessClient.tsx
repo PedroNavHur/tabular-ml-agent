@@ -417,8 +417,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                           Status: {runs[0].status}
                         </div>
                         <div className="text-xs opacity-70">
-                          Updated:{" "}
-                          {formatDateTimeUtc(runs[0].updatedAt)}
+                          Updated: {formatDateTimeUtc(runs[0].updatedAt)}
                         </div>
                       </div>
                       {/* processed filename omitted to avoid long names cluttering the UI */}
@@ -460,8 +459,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                       <div>
                         <div className="font-medium">Status: saved</div>
                         <div className="text-xs opacity-70">
-                          Created:{" "}
-                          {formatDateTimeUtc(latestProfile.createdAt)}
+                          Created: {formatDateTimeUtc(latestProfile.createdAt)}
                         </div>
                       </div>
                     </div>

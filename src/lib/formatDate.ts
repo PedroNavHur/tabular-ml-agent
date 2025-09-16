@@ -10,9 +10,10 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
 });
 
 export function formatDateTimeUtc(value: number | string | Date): string {
-  const date = typeof value === "number" || typeof value === "string"
-    ? new Date(value)
-    : value;
+  const date =
+    typeof value === "number" || typeof value === "string"
+      ? new Date(value)
+      : value;
   if (Number.isNaN(date.getTime())) return "Invalid date";
   return `${DATE_TIME_FORMATTER.format(date)} UTC`;
 }

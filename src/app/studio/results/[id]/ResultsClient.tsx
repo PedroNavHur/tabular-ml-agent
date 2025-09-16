@@ -7,6 +7,79 @@ import { ArrowBigLeft, Download, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
+type MetricProgressProps = {
+  label: string;
+  value: number;
+};
+
+function MetricProgress({ label, value }: MetricProgressProps) {
+  const pct = Math.max(0, Math.min(1, value)) * 100;
+  return (
+    <div className="flex justify-items-start items-center gap-2">
+      <span className="badge badge-soft badge-xs w-12 justify-center">
+        {label}
+      </span>
+      <progress
+        className="progress progress-secondary w-16"
+        value={pct}
+        max={100}
+      />
+      <span className="text-[0.6rem] font-mono opacity-80">
+        {pct.toFixed(1)}%
+      </span>
+    </div>
+  );
+}
+
+type BalancedAccuracySummaryProps = {
+  value: number;
+  std?: number | null;
+  subMetrics?: Array<{ label: string; value: number }>;
+};
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+function BalancedAccuracySummary({
+  value,
+  std,
+  subMetrics = [],
+}: BalancedAccuracySummaryProps) {
+  const pct = clamp01(value) * 100;
+  const stdPct = std == null ? undefined : Math.abs(std) * 100;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-items-start items-center gap-2">
+        <span className="badge badge-soft badge-primary badge-xs w-12 justify-center">
+          BA
+        </span>
+        <progress
+          className="progress progress-primary w-16 md:w-66 xl:w-84"
+          value={pct}
+          max={100}
+        />
+        <div className="text-[0.6rem] md:text-[0.675rem] font-mono">
+          {pct.toFixed(1)}%
+          {stdPct !== undefined ? ` ±${stdPct.toFixed(1)}%` : ""}
+        </div>
+      </div>
+      {subMetrics.length > 0 ? (
+        <div className="grid grid-cols-1 gap-2 mr-5 md:[grid-template-columns:repeat(2,minmax(12rem,max-content))] md:justify-start md:justify-items-start">
+          {subMetrics.map(metric => (
+            <MetricProgress
+              key={metric.label}
+              label={metric.label}
+              value={metric.value}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ResultsClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
   const models = useQuery(api.datasets.listTrainedModels, { datasetId }) as
@@ -70,93 +143,24 @@ export default function ResultsClient({ id }: { id: string }) {
         ? (m[k] as number)
         : null;
     if (hasBA) {
-      const val =
-        Math.max(0, Math.min(1, Number(m["balanced_accuracy"]))) * 100;
-      const std = hasBAStd
-        ? Math.abs(Number(m["balanced_accuracy_std"])) * 100
-        : undefined;
+      const val = Number(m["balanced_accuracy"]);
+      const std = hasBAStd ? Number(m["balanced_accuracy_std"]) : undefined;
       const acc = n("accuracy");
       const prec = n("precision");
       const rec = n("recall");
       const f1 = n("f1");
+      const subMetrics = [
+        acc != null ? { label: "Acc", value: acc } : null,
+        prec != null ? { label: "Pre", value: prec } : null,
+        rec != null ? { label: "Rec", value: rec } : null,
+        f1 != null ? { label: "F1", value: f1 } : null,
+      ].filter(Boolean) as Array<{ label: string; value: number }>;
       return (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="badge badge-soft badge-primary badge-xs w-12 justify-center">
-              BA
-            </span>
-            <progress
-              className="progress progress-primary w-66 xl:w-84"
-              value={val}
-              max={100}
-            />
-            <div className="text-[0.675rem] font-mono">
-              {val.toFixed(1)}%{std !== undefined ? ` ±${std.toFixed(1)}%` : ""}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mr-5">
-            {acc != null ? (
-              <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">
-                  Acc
-                </span>
-                <progress
-                  className="progress progress-secondary w-16"
-                  value={Math.max(0, Math.min(1, acc)) * 100}
-                  max={100}
-                />
-                <span className="text-[0.6rem] font-mono opacity-80">
-                  {(Math.max(0, Math.min(1, acc)) * 100).toFixed(1)}%
-                </span>
-              </div>
-            ) : null}
-            {prec != null ? (
-              <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">
-                  Pre
-                </span>
-                <progress
-                  className="progress progress-secondary w-16"
-                  value={Math.max(0, Math.min(1, prec)) * 100}
-                  max={100}
-                />
-                <span className="text-[0.6rem] font-mono opacity-80">
-                  {(Math.max(0, Math.min(1, prec)) * 100).toFixed(1)}%
-                </span>
-              </div>
-            ) : null}
-            {rec != null ? (
-              <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">
-                  Rec
-                </span>
-                <progress
-                  className="progress progress-secondary w-16"
-                  value={Math.max(0, Math.min(1, rec)) * 100}
-                  max={100}
-                />
-                <span className="text-[0.6rem] font-mono opacity-80">
-                  {(Math.max(0, Math.min(1, rec)) * 100).toFixed(1)}%
-                </span>
-              </div>
-            ) : null}
-            {f1 != null ? (
-              <div className="flex items-center gap-2">
-                <span className="badge badge-soft badge-xs w-12 justify-center">
-                  F1
-                </span>
-                <progress
-                  className="progress progress-secondary w-16"
-                  value={Math.max(0, Math.min(1, f1)) * 100}
-                  max={100}
-                />
-                <span className="text-[0.6rem] font-mono opacity-80">
-                  {(Math.max(0, Math.min(1, f1)) * 100).toFixed(1)}%
-                </span>
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <BalancedAccuracySummary
+          value={val}
+          std={std}
+          subMetrics={subMetrics}
+        />
       );
     }
     if (hasMAE) {

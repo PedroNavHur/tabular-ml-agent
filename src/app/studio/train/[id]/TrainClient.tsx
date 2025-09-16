@@ -120,8 +120,7 @@ export default function TrainClient({ id }: { id: string }) {
                   <div>
                     <div className="font-medium">Status: completed</div>
                     <div className="text-xs opacity-70">
-                      Updated:{" "}
-                      {formatDateTimeUtc(trainedModels[0].createdAt)}
+                      Updated: {formatDateTimeUtc(trainedModels[0].createdAt)}
                     </div>
                   </div>
                   <div className="text-xs opacity-70">

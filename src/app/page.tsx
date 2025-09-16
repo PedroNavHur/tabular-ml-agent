@@ -177,8 +177,8 @@ export default function Home() {
             <div className="card-body">
               <h3 className="card-title">Plan & Train</h3>
               <p className="opacity-80">
-                The agent proposes a run config of classical sklearn models.
-                We train in Modal, serialize with skops, and store artifacts in
+                The agent proposes a run config of classical sklearn models. We
+                train in Modal, serialize with skops, and store artifacts in
                 Convex.
               </p>
               <div className="card-actions justify-end">
