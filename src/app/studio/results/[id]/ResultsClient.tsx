@@ -214,8 +214,8 @@ export default function ResultsClient({ id }: { id: string }) {
               <thead>
                 <tr>
                   <th>Model</th>
-                  <th>Metrics</th>
-                  <th className="text-right">Actions</th>
+                  <th className="hidden md:table-cell">Metrics</th>
+                  <th className="hidden md:table-cell text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,42 +234,74 @@ export default function ResultsClient({ id }: { id: string }) {
                 ) : (
                   rows.map(m => (
                     <tr key={String(m._id)}>
-                      <td className="font-medium">
-                        <div className="flex flex-col">
-                          <span>{m.modelName}</span>
-                          {rows[0] && rows[0]._id === m._id ? (
-                            <span className="badge badge-accent badge-sm w-fit mt-1">
-                              Recommended
-                            </span>
-                          ) : null}
+                      <td className="font-medium align-top">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span>{m.modelName}</span>
+                            {rows[0] && rows[0]._id === m._id ? (
+                              <span className="badge badge-accent badge-sm">
+                                Recommended
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="md:hidden text-xs opacity-90 pt-2">
+                            <MetricsCell metrics={m.metrics} />
+                          </div>
+                          <div className="md:hidden flex gap-2 pt-2">
+                            <div className="tooltip" data-tip="Test Model">
+                              <Link
+                                className="btn btn-sm btn-soft btn-accent"
+                                href={`/studio/test/${id}?model=${String(m._id)}`}
+                                aria-label="Test Model"
+                              >
+                                <FlaskConical className="h-4 w-4" />
+                              </Link>
+                            </div>
+                            <div className="tooltip" data-tip="Download">
+                              <button
+                                className="btn btn-sm btn-soft btn-outline"
+                                onClick={async () => {
+                                  const url = await getDownloadUrl({
+                                    storageId: m.storageId,
+                                  });
+                                  if (url) window.open(url, "_blank");
+                                }}
+                                aria-label="Download"
+                              >
+                                <Download className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="text-xs opacity-90">
+                      <td className="hidden md:table-cell text-xs opacity-90 align-top">
                         <MetricsCell metrics={m.metrics} />
                       </td>
-                      <td className="text-right flex items-center justify-end gap-2">
-                        <div className="tooltip" data-tip="Test Model">
-                          <Link
-                            className="btn btn-sm btn-soft btn-accent"
-                            href={`/studio/test/${id}?model=${String(m._id)}`}
-                            aria-label="Test Model"
-                          >
-                            <FlaskConical className="h-4 w-4" />
-                          </Link>
-                        </div>
-                        <div className="tooltip" data-tip="Download">
-                          <button
-                            className="btn btn-sm btn-soft btn-outline"
-                            onClick={async () => {
-                              const url = await getDownloadUrl({
-                                storageId: m.storageId,
-                              });
-                              if (url) window.open(url, "_blank");
-                            }}
-                            aria-label="Download"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
+                      <td className="hidden md:table-cell text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="tooltip" data-tip="Test Model">
+                            <Link
+                              className="btn btn-sm btn-soft btn-accent"
+                              href={`/studio/test/${id}?model=${String(m._id)}`}
+                              aria-label="Test Model"
+                            >
+                              <FlaskConical className="h-4 w-4" />
+                            </Link>
+                          </div>
+                          <div className="tooltip" data-tip="Download">
+                            <button
+                              className="btn btn-sm btn-soft btn-outline"
+                              onClick={async () => {
+                                const url = await getDownloadUrl({
+                                  storageId: m.storageId,
+                                });
+                                if (url) window.open(url, "_blank");
+                              }}
+                              aria-label="Download"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>
