@@ -1,5 +1,6 @@
 "use client";
 import { useToastOp } from "@/hooks/useToastOp";
+import { formatDateTimeUtc } from "@/lib/formatDate";
 import { api } from "convex/_generated/api";
 import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useQuery } from "convex/react";
@@ -120,7 +121,7 @@ export default function TrainClient({ id }: { id: string }) {
                     <div className="font-medium">Status: completed</div>
                     <div className="text-xs opacity-70">
                       Updated:{" "}
-                      {new Date(trainedModels[0].createdAt).toLocaleString()}
+                      {formatDateTimeUtc(trainedModels[0].createdAt)}
                     </div>
                   </div>
                   <div className="text-xs opacity-70">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
+import { formatDateTimeUtc } from "@/lib/formatDate";
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -12,14 +13,6 @@ function formatBytes(bytes: number): string {
   const sizes = ["B", "KB", "MB", "GB", "TB"] as const;
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
-}
-
-function formatDate(ms: number): string {
-  try {
-    return new Date(ms).toLocaleString();
-  } catch {
-    return String(ms);
-  }
 }
 
 export default function DatasetsTable() {
@@ -63,7 +56,9 @@ export default function DatasetsTable() {
                   <td className="font-medium">{d.filename}</td>
                   <td>{formatBytes(d.size)}</td>
                   <td className="opacity-80">{d.contentType}</td>
-                  <td className="opacity-80">{formatDate(d.uploadedAt)}</td>
+                  <td className="opacity-80">
+                    {formatDateTimeUtc(d.uploadedAt)}
+                  </td>
                   <td className="text-right">
                     <div className="flex gap-2 justify-end">
                       <Link

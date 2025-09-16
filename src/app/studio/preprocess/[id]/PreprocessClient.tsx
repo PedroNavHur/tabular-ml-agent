@@ -1,5 +1,6 @@
 "use client";
 import { useToastOp } from "@/hooks/useToastOp";
+import { formatDateTimeUtc } from "@/lib/formatDate";
 import { api } from "convex/_generated/api";
 import type { Doc, Id } from "convex/_generated/dataModel";
 import { useAction, useMutation, useQuery } from "convex/react";
@@ -417,7 +418,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                         </div>
                         <div className="text-xs opacity-70">
                           Updated:{" "}
-                          {new Date(runs[0].updatedAt).toLocaleString()}
+                          {formatDateTimeUtc(runs[0].updatedAt)}
                         </div>
                       </div>
                       {/* processed filename omitted to avoid long names cluttering the UI */}
@@ -460,7 +461,7 @@ export default function PreprocessClient({ id }: { id: string }) {
                         <div className="font-medium">Status: saved</div>
                         <div className="text-xs opacity-70">
                           Created:{" "}
-                          {new Date(latestProfile.createdAt).toLocaleString()}
+                          {formatDateTimeUtc(latestProfile.createdAt)}
                         </div>
                       </div>
                     </div>

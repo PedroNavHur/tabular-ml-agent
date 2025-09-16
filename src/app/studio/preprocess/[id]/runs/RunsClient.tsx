@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
+import { formatDateTimeUtc } from "@/lib/formatDate";
 
 export default function RunsClient({ id }: { id: string }) {
   const datasetId = id as Id<"datasets">;
@@ -46,7 +47,7 @@ export default function RunsClient({ id }: { id: string }) {
                     <span className="badge badge-outline">{r.status}</span>
                   </td>
                   <td className="opacity-80">
-                    {new Date(r.updatedAt).toLocaleString()}
+                    {formatDateTimeUtc(r.updatedAt)}
                   </td>
                   <td>
                     {r.processedFilename ? (
